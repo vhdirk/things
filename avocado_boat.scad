@@ -39,11 +39,20 @@ linear_extrude( height = base_height ) {
 }
 
 // body
-linear_extrude( height = body_height, slices = 2*(body_height) ) {
-    polyShape(sides=outer_sides, 
-              radius=outer_radius,
-              solid="no" ); // change to yes for solid bowl
+difference(){
+    linear_extrude( height = body_height, slices = 2*(body_height) ) {
+        polyShape(sides=outer_sides, 
+                radius=outer_radius,
+                solid="no" ); // change to yes for solid bowl
+    }
+
+    rotate([90, 0, 0])
+    translate([-13, 8, outer_radius])
+    linear_extrude(height=1, center=true, convexity=10)
+    scale(0.175)
+    import("hippo_segments1.svg");
 }
+
 
 linear_extrude( height = body_height, slices = 2*(body_height)  ) {
     polyShape(sides=0,
@@ -52,26 +61,38 @@ linear_extrude( height = body_height, slices = 2*(body_height)  ) {
 }
 
 // fins
-difference(){
 
-    union(){
-        translate([0,inner_radius])
-            cylinder(h=body_height, r=fin_radius);
-        
-                        
-        rotate([0,0,120]) 
-        translate([0,inner_radius])
-            cylinder(h=body_height, r=fin_radius);
+intersection(){
+    difference(){
 
-        rotate([0,0,-120]) 
-        translate([0,inner_radius])
-            cylinder(h=body_height, r=fin_radius);
+        union(){
+            translate([0,inner_radius])
+                cylinder(h=body_height, r=fin_radius);
+            
+            rotate([0,0,120]) 
+            translate([0,inner_radius])
+                cylinder(h=body_height, r=fin_radius);
 
+            rotate([0,0,-120]) 
+            translate([0,inner_radius])
+                cylinder(h=body_height, r=fin_radius);
+
+        }
+
+        union(){
+            translate([0,0,(inner_radius+thickness/2)])
+            sphere(r=inner_radius+thickness*2);
+
+
+        }
     }
 
-    translate([0,0,(inner_radius+thickness/2)])
-    sphere(r=inner_radius+thickness*2);
+    cylinder(h=body_height, r=inner_radius+thickness*2);
+
 }
+
+
+
 
 
 
@@ -87,8 +108,8 @@ module polyShape(solid, sides, radius){
         
         // take away inner shape
         if (solid=="no"){
-        offset( r=5-thickness, $fn=48 )
-            circle( r=radius, $fn=sides );
+            offset( r=5-thickness, $fn=48 )
+                circle( r=radius, $fn=sides );
         }
     }
 }
