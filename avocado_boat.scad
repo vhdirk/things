@@ -1,5 +1,8 @@
-////////////////////////////////////////////////////////
-// width of the bowl (in mm)
+/*!
+ * A simple avocado floater.
+ * Based on: https://www.thingiverse.com/thing:2774405
+ */
+
 outer_diameter = 70;
 outer_radius = outer_diameter/2;
 
