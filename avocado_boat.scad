@@ -67,21 +67,21 @@ intersection(){
 
         union(){
             translate([0,inner_radius])
-                cylinder(h=body_height, r=fin_radius);
+                cylinder(h=body_height*0.8, r=fin_radius);
             
             rotate([0,0,120]) 
             translate([0,inner_radius])
-                cylinder(h=body_height, r=fin_radius);
+                cylinder(h=body_height*0.8, r=fin_radius);
 
             rotate([0,0,-120]) 
             translate([0,inner_radius])
-                cylinder(h=body_height, r=fin_radius);
+                cylinder(h=body_height*0.8, r=fin_radius);
 
         }
 
         union(){
             translate([0,0,(inner_radius+thickness/2)])
-            sphere(r=inner_radius+thickness*2);
+            sphere(r=inner_radius+thickness*1.6);
 
 
         }
