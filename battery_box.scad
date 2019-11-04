@@ -12,7 +12,7 @@ part                            = "all";        // [holder:Holder, cover:Cover, 
 cells                           = 2;            // [1:50]
 mounting_lugs                   = "sides";       // [topbottom, sides, none]
 mounting_lug_screw_diameter     = 6.25;            // [1:0.1:9]
-mounting_lug_thickness          = 4;            // [0.5:0.1:10]
+mounting_lug_thickness          = 6;            // [0.5:0.1:10]
 center_channel_width            = 3.0;          // [0.2:0.1:7.0]
 other_channel_width             = 2.5;          // [0.2:0.1:5.0]
 cover_retainer_clearance        = 0.1;          // [0.0:0.05:0.3]
@@ -29,7 +29,7 @@ switch_screw_diameter           = 2.0;
 switch_screw_offset             = 2.0;
 switch_position                 = "top";
 switch_knob_width               = 3.0 + 1; // 1 mm extra for clearance
-switch_knob_travel              = 10.2;
+switch_knob_travel              = 10.2 + 2; // 2 * 1 mm extra for clearance
 
 lid_bolt_diameter               = 3.0;
 logo                            = true;
