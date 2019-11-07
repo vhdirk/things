@@ -17,19 +17,19 @@ center_channel_width            = 3.0;          // [0.2:0.1:7.0]
 other_channel_width             = 2.5;          // [0.2:0.1:5.0]
 cover_retainer_clearance        = 0.1;          // [0.0:0.05:0.3]
 nozzle_diameter                 = 0.4;          // [0.05:0.05:0.7]
-box_padding                     = 2.0;
+box_padding                     = 3.0;
 
 switch_compartiment             = true;
-switch_plate_width              = 6.1;
+switch_plate_width              = 5.5;
 switch_plate_length             = 24;
 switch_plate_thickness          = 0.82;
-switch_width                    = 5.0;
+switch_width                    = 6.3;
 switch_length                   = 15.6;
 switch_screw_diameter           = 2.0;
 switch_screw_offset             = 2.0;
 switch_position                 = "top";
 switch_knob_width               = 3.0 + 1; // 1 mm extra for clearance
-switch_knob_travel              = 10.2 + 2; // 2 * 1 mm extra for clearance
+switch_knob_travel              = 10.2 + 1.5; // 2 * 1 mm extra for clearance
 
 lid_bolt_diameter               = 3.0;
 logo                            = true;
@@ -77,13 +77,13 @@ COVER_RETAINER_OFFSET             = [ other_channel_width / 2 + COVER_RETAINER_D
 COVER_RETAINER_HEIGHT             = UNDERSIDE_CHANNELLING_THICKNESS;
 COVER_RETAINER_VERTICAL_CLEARANCE = 0.5;
 
-SWITCH_COMPARTIMENT_WIDTH         = switch_width * 2;
+SWITCH_COMPARTIMENT_WIDTH         = 10;
 
 LID_BOLT_SPACE_WIDTH              = lid_bolt_diameter * 3;
 LID_THICKNESS                     = 3;
 BOX_DIMENSIONS                    = [(SINGLE_CELL_HOLDER_DIMENSIONS[0] * cells + box_padding * 2),
                                      SINGLE_CELL_HOLDER_DIMENSIONS[1] + SWITCH_COMPARTIMENT_WIDTH + LID_BOLT_SPACE_WIDTH*2,
-                                     SINGLE_CELL_HOLDER_DIMENSIONS[2] + BOTTOM_THICKNESS*2];
+                                     AA_CELL_DIAMETER + BOTTOM_THICKNESS*2];
 COVER_DIMENSIONS                  = [ BOX_DIMENSIONS[0],
                                       BOX_DIMENSIONS[1],
                                       COVER_THICKNESS];
@@ -213,10 +213,10 @@ module holder()
     translate([-BOX_DIMENSIONS[0]/2, -(BOX_DIMENSIONS[1] - SWITCH_COMPARTIMENT_WIDTH) /2, 0])
     roundedcube([BOX_DIMENSIONS[0], BOX_DIMENSIONS[1], BOX_DIMENSIONS[2]], false, 1, "z");
 
-    translate([0, SWITCH_COMPARTIMENT_WIDTH/2, (SINGLE_CELL_HOLDER_DIMENSIONS[2] + BOTTOM_THICKNESS*2)/2])
+    translate([0, SWITCH_COMPARTIMENT_WIDTH/2, (BOX_DIMENSIONS[2])/2])
     cube([SINGLE_CELL_HOLDER_DIMENSIONS[0] * cells,
           SINGLE_CELL_HOLDER_DIMENSIONS[1] + SWITCH_COMPARTIMENT_WIDTH,
-          SINGLE_CELL_HOLDER_DIMENSIONS[2] + BOTTOM_THICKNESS*2 + 2], center=true);
+          BOX_DIMENSIONS[2] + 2], center=true);
 
 
     // nut catches for lid bolts
@@ -251,7 +251,7 @@ module holder()
     }
 
     // channel for wires
-    translate([0, (BOX_DIMENSIONS[1] ) /2, 0])
+    translate([0, (BOX_DIMENSIONS[1] )/2, UNDERSIDE_CHANNELLING_THICKNESS/2])
     cube([center_channel_width,
         box_padding + LID_BOLT_SPACE_WIDTH,
         UNDERSIDE_CHANNELLING_THICKNESS], center=true);
@@ -266,7 +266,7 @@ module switchCompartiment(){
   {
     difference(){
       // the entire box of the switch
-      cube([SWITCH_COMPARTIMENT_WIDTH, SINGLE_CELL_HOLDER_DIMENSIONS[0]*cells, SINGLE_CELL_HOLDER_DIMENSIONS[2] + BOTTOM_THICKNESS*2], false);
+      cube([SWITCH_COMPARTIMENT_WIDTH, SINGLE_CELL_HOLDER_DIMENSIONS[0]*cells, BOX_DIMENSIONS[2]], false);
 
       // the bottomside wire cutout
       translate([0, (SINGLE_CELL_HOLDER_DIMENSIONS[0] - LUG_VOID_WIDTH)/2, 0])
@@ -276,12 +276,12 @@ module switchCompartiment(){
 
       // switch cutout
       translate([SWITCH_COMPARTIMENT_WIDTH_MIDDLE, (SINGLE_CELL_HOLDER_DIMENSIONS[0]*cells - switch_length)/2, 0])
-      cube([switch_width, switch_length, SINGLE_CELL_HOLDER_DIMENSIONS[2] + BOTTOM_THICKNESS*2+1], false);
+      cube([switch_width, switch_length, BOX_DIMENSIONS[2]+1], false);
   
       // switch plate cutout
-      translate([SWITCH_COMPARTIMENT_WIDTH_MIDDLE - (switch_plate_width - switch_width)/2, (SINGLE_CELL_HOLDER_DIMENSIONS[0]*cells - switch_plate_length)/2, (SINGLE_CELL_HOLDER_DIMENSIONS[2] + BOTTOM_THICKNESS*2 - switch_plate_thickness)])
+      translate([SWITCH_COMPARTIMENT_WIDTH_MIDDLE - (switch_plate_width - switch_width)/2, (SINGLE_CELL_HOLDER_DIMENSIONS[0]*cells - switch_plate_length)/2, (BOX_DIMENSIONS[2] - switch_plate_thickness)])
       difference(){
-        cube([switch_plate_width, switch_plate_length, SINGLE_CELL_HOLDER_DIMENSIONS[2] + BOTTOM_THICKNESS*2], false);
+        cube([switch_plate_width, switch_plate_length, BOX_DIMENSIONS[2]], false);
   
         translate([switch_plate_width/2, (switch_screw_offset + switch_screw_diameter)/2, 0])
         cylinder(h=switch_plate_thickness, r=switch_screw_diameter/2, center=true);
@@ -343,19 +343,23 @@ module lid()
       translate([BOX_DIMENSIONS[0] - LID_BOLT_SPACE_WIDTH/3*2, BOX_DIMENSIONS[1] - LID_BOLT_SPACE_WIDTH/2, LID_THICKNESS]){
         hole_through(name="M3", l=LID_THICKNESS*2);
       }
+    }
 
-      // hole for switch travel
-      translate([BOX_DIMENSIONS[0]/2 , BOX_DIMENSIONS[1]-LID_BOLT_SPACE_WIDTH-SWITCH_COMPARTIMENT_WIDTH_MIDDLE-switch_knob_width/2, 0])
+    // hole for switch travel
+    translate([0, SINGLE_CELL_HOLDER_DIMENSIONS[1]/2 + SWITCH_COMPARTIMENT_WIDTH_MIDDLE - switch_knob_width/2, 0]){
       cube([switch_knob_travel, switch_knob_width, LID_THICKNESS*2], true);
     }
   }
   
-  translate([-BOX_DIMENSIONS[0]/2, -BOX_DIMENSIONS[1]/2, LID_THICKNESS])
-  translate([(BOX_DIMENSIONS[0]*1.5 - BOX_DIMENSIONS[0])/2 - box_padding*1.5, LID_BOLT_SPACE_WIDTH, 0])
-  linear_extrude(height=1, center=false, convexity=10)
-  rotate([180, 0, 90])
-  resize([BOX_DIMENSIONS[0]*1.5, 0, 0],auto=[true,true,false]) 
-  import("hippo_segments1.svg");
+  if (logo) {  
+      translate([-BOX_DIMENSIONS[0]/2, -BOX_DIMENSIONS[1]/2, LID_THICKNESS])
+      translate([(BOX_DIMENSIONS[0]*1.5 - BOX_DIMENSIONS[0])/2 - box_padding*1.5, LID_BOLT_SPACE_WIDTH, 0])
+      linear_extrude(height=0.6, center=false, convexity=10)
+      rotate([180, 0, 90])
+      resize([BOX_DIMENSIONS[0]*1.5, 0, 0],auto=[true,true,false]) 
+      import("hippo_segments1.svg");
+      
+  }
 
 
 }
