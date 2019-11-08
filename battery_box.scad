@@ -1,5 +1,5 @@
 // License:  Creative Commons Attribtion-NonCommercial-ShareAlike
-// http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode
+// http://creativecommons.org/lice  nses/by-nc-sa/3.0/legalcode
 //
 // Author: Jetty, 10th December, 2015
 // Parametric AA Battery Box With Contacts
@@ -18,6 +18,7 @@ other_channel_width             = 2.5;          // [0.2:0.1:5.0]
 cover_retainer_clearance        = 0.1;          // [0.0:0.05:0.3]
 nozzle_diameter                 = 0.4;          // [0.05:0.05:0.7]
 box_padding                     = 3.0;
+cell_sidebar_width              = 1.5;                   
 
 switch_compartiment             = true;
 switch_plate_width              = 5.5;
@@ -46,6 +47,9 @@ CELL_BARREL_LENGTH                = AA_CELL_LENGTH + NEG_CONTACT_LENGTH + POS_CO
 SINGLE_CELL_HOLDER_DIMENSIONS     = [AA_CELL_DIAMETER + SIDE_THICKNESS * 2,
                                      CELL_BARREL_LENGTH,
                                      AA_CELL_DIAMETER / 2 + BOTTOM_THICKNESS];
+MULTI_CELL_HOLDER_DIMENSIONS      = [(SINGLE_CELL_HOLDER_DIMENSIONS[0] * cells + cell_sidebar_width * 2),
+                                     SINGLE_CELL_HOLDER_DIMENSIONS[1],
+                                     SINGLE_CELL_HOLDER_DIMENSIONS[2]];
 TEXT_SIZE                         = 8;
 TEXT_DEPTH                        = 1.20;
 TEXT_OFFSET_POS_TOP               = [0, AA_CELL_LENGTH / 2 - 5, BOTTOM_THICKNESS];
@@ -66,8 +70,8 @@ UNDERSIDE_CHANNELLING_THICKNESS   = BOTTOM_THICKNESS - 1;
 LUG_VOID_LENGTH                   = (CONTACT_LUG_DIMENSIONS[2] - (BOTTOM_THICKNESS - UNDERSIDE_CHANNELLING_THICKNESS)) + 1;
 LUG_VOID_WIDTH                    = CONTACT_LUG_DIMENSIONS[0] + 1;
 COVER_THICKNESS                   = 3;
-COVER_DIFFERENCE_DIMENSIONS       = [(SINGLE_CELL_HOLDER_DIMENSIONS[0] * cells + box_padding * 2) * 2,
-                                     SINGLE_CELL_HOLDER_DIMENSIONS[1] * 2,
+COVER_DIFFERENCE_DIMENSIONS       = [(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) * 2,
+                                      MULTI_CELL_HOLDER_DIMENSIONS[1] * 2,
                                      (CONTACT_RETAINER_DIMENSIONS[2] + BOTTOM_THICKNESS) * 2];
 HOLDER_COVER_SPACING              = 3;
 COVER_RETAINER_DIAMETER           = 3;
@@ -81,9 +85,9 @@ SWITCH_COMPARTIMENT_WIDTH         = 10;
 
 LID_BOLT_SPACE_WIDTH              = lid_bolt_diameter * 3;
 LID_THICKNESS                     = 3;
-BOX_DIMENSIONS                    = [(SINGLE_CELL_HOLDER_DIMENSIONS[0] * cells + box_padding * 2),
+BOX_DIMENSIONS                    = [(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding),
                                      SINGLE_CELL_HOLDER_DIMENSIONS[1] + SWITCH_COMPARTIMENT_WIDTH + LID_BOLT_SPACE_WIDTH*2,
-                                     AA_CELL_DIAMETER + BOTTOM_THICKNESS*2];
+                                     AA_CELL_DIAMETER + BOTTOM_THICKNESS + 1];
 COVER_DIMENSIONS                  = [ BOX_DIMENSIONS[0],
                                       BOX_DIMENSIONS[1],
                                       COVER_THICKNESS];
@@ -173,7 +177,7 @@ module holder()
         multipleCells(cells, mounting_lugs);
 
         // the switch compartiment
-        translate([(cells * SINGLE_CELL_HOLDER_DIMENSIONS[0])/2, SINGLE_CELL_HOLDER_DIMENSIONS[1]/2, 0])
+        translate([MULTI_CELL_HOLDER_DIMENSIONS[0]/2, MULTI_CELL_HOLDER_DIMENSIONS[1]/2, 0])
         switchCompartiment();
       }
 
@@ -183,7 +187,7 @@ module holder()
       
 
       // the retainer holes for attaching the bottom cover
-      translate([- ((cells * SINGLE_CELL_HOLDER_DIMENSIONS[0]) + box_padding * 2) / 2, 0, 0])
+      translate([- (MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, 0])
         translate([box_padding, 0, 0,])
           for (c = [0:cells-1])
           {
@@ -214,8 +218,8 @@ module holder()
     roundedcube([BOX_DIMENSIONS[0], BOX_DIMENSIONS[1], BOX_DIMENSIONS[2]], false, 1, "z");
 
     translate([0, SWITCH_COMPARTIMENT_WIDTH/2, (BOX_DIMENSIONS[2])/2])
-    cube([SINGLE_CELL_HOLDER_DIMENSIONS[0] * cells,
-          SINGLE_CELL_HOLDER_DIMENSIONS[1] + SWITCH_COMPARTIMENT_WIDTH,
+    cube([MULTI_CELL_HOLDER_DIMENSIONS[0],
+          MULTI_CELL_HOLDER_DIMENSIONS[1] + SWITCH_COMPARTIMENT_WIDTH,
           BOX_DIMENSIONS[2] + 2], center=true);
 
 
@@ -266,20 +270,19 @@ module switchCompartiment(){
   {
     difference(){
       // the entire box of the switch
-      cube([SWITCH_COMPARTIMENT_WIDTH, SINGLE_CELL_HOLDER_DIMENSIONS[0]*cells, BOX_DIMENSIONS[2]], false);
+      cube([SWITCH_COMPARTIMENT_WIDTH, MULTI_CELL_HOLDER_DIMENSIONS[0], BOX_DIMENSIONS[2]], false);
 
       // the bottomside wire cutout
-      translate([0, (SINGLE_CELL_HOLDER_DIMENSIONS[0] - LUG_VOID_WIDTH)/2, 0])
+      translate([0, (SINGLE_CELL_HOLDER_DIMENSIONS[0] + cell_sidebar_width*2 - LUG_VOID_WIDTH)/2, 0])
       cube([SWITCH_COMPARTIMENT_WIDTH, SINGLE_CELL_HOLDER_DIMENSIONS[0]*(cells-1) + LUG_VOID_WIDTH, UNDERSIDE_CHANNELLING_THICKNESS], false);
-
       // set switch slightly off-center. looks nicer
 
       // switch cutout
-      translate([SWITCH_COMPARTIMENT_WIDTH_MIDDLE, (SINGLE_CELL_HOLDER_DIMENSIONS[0]*cells - switch_length)/2, 0])
+      translate([SWITCH_COMPARTIMENT_WIDTH_MIDDLE, (MULTI_CELL_HOLDER_DIMENSIONS[0] - switch_length)/2, 0])
       cube([switch_width, switch_length, BOX_DIMENSIONS[2]+1], false);
   
       // switch plate cutout
-      translate([SWITCH_COMPARTIMENT_WIDTH_MIDDLE - (switch_plate_width - switch_width)/2, (SINGLE_CELL_HOLDER_DIMENSIONS[0]*cells - switch_plate_length)/2, (BOX_DIMENSIONS[2] - switch_plate_thickness)])
+      translate([SWITCH_COMPARTIMENT_WIDTH_MIDDLE - (switch_plate_width - switch_width)/2, (MULTI_CELL_HOLDER_DIMENSIONS[0] - switch_plate_length)/2, (BOX_DIMENSIONS[2] - switch_plate_thickness)])
       difference(){
         cube([switch_plate_width, switch_plate_length, BOX_DIMENSIONS[2]], false);
   
@@ -353,10 +356,10 @@ module lid()
   
   if (logo) {  
       translate([-BOX_DIMENSIONS[0]/2, -BOX_DIMENSIONS[1]/2, LID_THICKNESS])
-      translate([(BOX_DIMENSIONS[0]*1.5 - BOX_DIMENSIONS[0])/2 - box_padding*1.5, LID_BOLT_SPACE_WIDTH, 0])
+      translate([(BOX_DIMENSIONS[0]*1.5 - BOX_DIMENSIONS[0])/2 - box_padding, LID_BOLT_SPACE_WIDTH, 0])
       linear_extrude(height=0.6, center=false, convexity=10)
       rotate([180, 0, 90])
-      resize([BOX_DIMENSIONS[0]*1.5, 0, 0],auto=[true,true,false]) 
+      resize([BOX_DIMENSIONS[0]*1.55, 0, 0],auto=[true,true,false]) 
       import("hippo_segments1.svg");
       
   }
@@ -368,8 +371,8 @@ module lid()
 module coverPlateBlock()
 {
   translate([0, 0, - COVER_THICKNESS / 2])
-    cube([SINGLE_CELL_HOLDER_DIMENSIONS[0] * cells + box_padding * 2,
-                 SINGLE_CELL_HOLDER_DIMENSIONS[1] + SWITCH_COMPARTIMENT_WIDTH + box_padding * 2,
+    cube([MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding,
+          MULTI_CELL_HOLDER_DIMENSIONS[1] + SWITCH_COMPARTIMENT_WIDTH + box_padding * 2,
                  COVER_THICKNESS],
                  true);
 }
@@ -459,7 +462,7 @@ module multipleCells(cellCount, mounting_lugs)
 {
   if (mounting_lugs == "sides")
   {
-    translate([-((cellCount * SINGLE_CELL_HOLDER_DIMENSIONS[0]) + box_padding * 2) / 2, 0, 0])
+    translate([-(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, 0])
     {
       translate([0, BOX_DIMENSIONS[1] / 2 - LID_BOLT_SPACE_WIDTH, 0])
         mountingLug();
@@ -467,7 +470,7 @@ module multipleCells(cellCount, mounting_lugs)
         mountingLug();
     }
 
-    translate([((cellCount * SINGLE_CELL_HOLDER_DIMENSIONS[0]) + box_padding * 2) / 2, 0, 0])
+    translate([(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, 0])
     {
       translate([0, BOX_DIMENSIONS[1] / 2 - LID_BOLT_SPACE_WIDTH, 0])
         rotate([0, 0, 180])
@@ -478,8 +481,9 @@ module multipleCells(cellCount, mounting_lugs)
     }
   }
     
-  translate([- ((cellCount * SINGLE_CELL_HOLDER_DIMENSIONS[0]) + box_padding * 2) / 2, 0, 0])
-    translate([box_padding, 0, 0,])
+  translate([-MULTI_CELL_HOLDER_DIMENSIONS[0]/2 + box_padding/2, 0, 0]){
+
+      translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], 0, 0])
       for (c = [0:cellCount-1])
       {
   
@@ -497,6 +501,7 @@ module multipleCells(cellCount, mounting_lugs)
               mountingLug();
         }
       }
+    }
   
 
   // Cover plate
@@ -507,25 +512,13 @@ module multipleCells(cellCount, mounting_lugs)
 
 module multipleCellsRetainersOnly(cellCount)
 {
-  translate([- ((cellCount * SINGLE_CELL_HOLDER_DIMENSIONS[0]) + box_padding * 2) / 2, 0, 0])
+  translate([- (MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, 0])
     translate([box_padding, 0, 0])
       for (c = [0:cellCount-1]){
         translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], 0, 0])
           singleCellRetainersOnly();                
       }
 }
-
-
-
-module sideBar()
-{
-  // translate([0,0, (CONTACT_RETAINER_DIMENSIONS[2]/ 2)])
-  cube([box_padding,
-        SINGLE_CELL_HOLDER_DIMENSIONS[1],
-        CONTACT_RETAINER_DIMENSIONS[2] + BOTTOM_THICKNESS*2  ]);
-}
-
-
 
 module singleCell(index)
 {
@@ -544,19 +537,23 @@ module singleCell(index)
   
       difference()
       {
+        x_offset = ((index == 0) ? -cell_sidebar_width : ((index == cells-1) ? cell_sidebar_width: 0));
+        width = ((index > 0 && SINGLE_CELL_HOLDER_DIMENSIONS[0] < cells - 1) ? SINGLE_CELL_HOLDER_DIMENSIONS[0] : SINGLE_CELL_HOLDER_DIMENSIONS[0] + cell_sidebar_width*2);
+
         // The box for the cell
-        translate([0, 0, SINGLE_CELL_HOLDER_DIMENSIONS[2] / 2])
-          cube(SINGLE_CELL_HOLDER_DIMENSIONS, center=true);
-        
+        translate([x_offset, 0, SINGLE_CELL_HOLDER_DIMENSIONS[2] / 2]){
+          cube([width,
+                SINGLE_CELL_HOLDER_DIMENSIONS[1], SINGLE_CELL_HOLDER_DIMENSIONS[2]], center=true);
+        }
         // The cylinder cutout for the box
         translate([0, 0, AA_CELL_DIAMETER / 2 + BOTTOM_THICKNESS])
           rotate([-90, 0, 0])
             cylinder(r=AA_CELL_DIAMETER / 2, h=CELL_BARREL_LENGTH, center=true);
 
         // The cylinder cutout for fingers
-        translate([0, 0, AA_CELL_DIAMETER / 2 + BOTTOM_THICKNESS])
+        translate([x_offset, 0, AA_CELL_DIAMETER / 2 + BOTTOM_THICKNESS])
           rotate([0, 90, 0])
-            cylinder(r=AA_CELL_DIAMETER / 2, h=SINGLE_CELL_HOLDER_DIMENSIONS[0] + MANIFOLD_CORRECTION * 2, center=true);
+            cylinder(r=AA_CELL_DIAMETER / 2, h=width + MANIFOLD_CORRECTION * 2, center=true);
         
         // The positive mark text
         translate((index % 2 == 0) ? TEXT_OFFSET_POS_TOP : TEXT_OFFSET_POS_BOTTOM)
@@ -582,10 +579,10 @@ module singleCell(index)
     undersideTabsAndChanneling();
   }
 
-  // // The cylinder positive, visualizing a battery
-  // translate([0, 0, AA_CELL_DIAMETER / 2 + BOTTOM_THICKNESS])
-  //   rotate([-90, 0, 0])
-  //     cylinder(r=AA_CELL_DIAMETER / 2, h=CELL_BARREL_LENGTH, center=true);
+  // The cylinder positive, visualizing a battery
+  %translate([0, 0, AA_CELL_DIAMETER / 2 + BOTTOM_THICKNESS])
+    rotate([-90, 0, 0])
+      cylinder(r=AA_CELL_DIAMETER / 2, h=CELL_BARREL_LENGTH, center=true);
 }
 
 
