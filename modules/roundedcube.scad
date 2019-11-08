@@ -1,4 +1,12 @@
+/*!
+ * @author Daniel Upshaw
+ * @brief Cube with rounded corners
+ * Found at: https://danielupshaw.com/openscad-rounded-corners/
+ *
+ */
+
 // Higher definition curves
+
 $fs = 0.01;
 
 module roundedcube(size = [1, 1, 1], center = false, radius = 0.5, apply_to = "all") {

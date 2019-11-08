@@ -1,5 +1,6 @@
 /*!
- * A simple avocado floater.
+ * @author Dirk Van Haerenborgh <vhdirk@gmail.com>
+ * @brief A simple avocado floater.
  * Based on: https://www.thingiverse.com/thing:2774405
  */
 

@@ -1,9 +1,14 @@
-// License:  Creative Commons Attribtion-NonCommercial-ShareAlike
-// http://creativecommons.org/lice  nses/by-nc-sa/3.0/legalcode
-//
-// Author: Jetty, 10th December, 2015
-// Parametric AA Battery Box With Contacts
-//
+/*!
+ *  License:  Creative Commons Attribtion-NonCommercial-ShareAlike
+ *  http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode
+ * 
+ *  Modified version of: https://www.thingiverse.com/thing:1190819
+ *  Original Author: Jetty, 10th December, 2015
+ *  Parametric AA Battery Box With Contacts
+ * 
+ * @author Dirk Van Haerenborgh <vhdirk@gmail.com>
+ * @brief A simple parametric battery box with lid and place for a switch.
+ */
 
 // preview[view:north, tilt:top diagonal]
 
@@ -482,26 +487,24 @@ module multipleCells(cellCount, mounting_lugs)
   }
     
   translate([-MULTI_CELL_HOLDER_DIMENSIONS[0]/2 + box_padding/2, 0, 0]){
+    for (c = [0:cellCount-1])
+    {
 
-      translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], 0, 0])
-      for (c = [0:cellCount-1])
+      translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], 0, 0]){
+        singleCell(c);
+      }
+      
+      if (mounting_lugs == "topbottom" && (c == 0 || c == (cellCount - 1)))
       {
-  
-        translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], 0, 0]){
-          singleCell(c);
-        }
-        
-        if (mounting_lugs == "topbottom" && (c == 0 || c == (cellCount - 1)))
-        {
-          translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], -SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2, 0])
-            rotate([0, 0, 90])
-              mountingLug();
-          translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2, 0])
-            rotate([0, 0, -90])
-              mountingLug();
-        }
+        translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], -SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2, 0])
+          rotate([0, 0, 90])
+            mountingLug();
+        translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2, 0])
+          rotate([0, 0, -90])
+            mountingLug();
       }
     }
+  }
   
 
   // Cover plate
