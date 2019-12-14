@@ -32,18 +32,20 @@ PSU_MOUNT_HOLES = [
 
 SWITCH_SOCKET_PLATE_HULL = [48, 59, 2];
 
-module xt60_plate_mount(){
+module xt60_plate_mount(half=false){
 
   padding = 3.0;
+  connector_height = (half ? 8 : 16);
+  height = connector_height + padding;
 
 	difference(){
     // make a box where these connectors should fit in
-    cube([16 + 2*padding, 7.5 + 2*padding, 16 + padding]);
+    cube([16 + 2*padding, 7.5 + 2*padding, height]);
 
     translate([padding, padding, 0]){
       // cut away the space for the connector itself
       translate([0, 0, padding-epsilon])
-        xt60_outer(16+epsilon*2);
+        xt60_outer(connector_height+epsilon*2);
 
       // cut away the bottom for the wires
       translate([0.85, 0.85, -1])
@@ -149,12 +151,33 @@ module enclosure() {
 
 }
 
+module xt60_mounts(num_connectors=3){
+  translate([0, DIMENSIONS[1]-19-WALL_THICKNESS, 11-WALL_THICKNESS-epsilon]) {
+
+    for(c = [0:num_connectors-1]){
+      translate([c*13.5, 0, 0])
+      rotate([0, 180, -90])
+      xt60_plate_mount(half=true);
+    }
+  }
+}
+
+module xt60_mounts_cutout(num_connectors=3){
+  translate([0, DIMENSIONS[1]-19-WALL_THICKNESS, -WALL_THICKNESS-epsilon]) {
+    cube([num_connectors*13.5, 19, WALL_THICKNESS+epsilon*2]);
+  }
+}
 
 
 
 
 union(){
-  enclosure();
+
+  difference(){
+    enclosure();
+
+    xt60_mounts_cutout();
+  }
 
   translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]+WALL_THICKNESS/2, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
   rotate([180, 180, 90])
@@ -162,19 +185,7 @@ union(){
   switch_socket();
 
   color("red"){
-  translate([13.5, 19+WALL_THICKNESS, 19-WALL_THICKNESS-epsilon]) {
-    translate([0, 0, 0])
-    rotate([0, 180, 90])
-    xt60_plate_mount();
-
-    translate([13.5, 0, 0])
-    rotate([0, 180, 90])
-    xt60_plate_mount();
-
-    translate([27, 0, 0])
-    rotate([0, 180, 90])
-    xt60_plate_mount();
-  }
+    xt60_mounts();
   }
 
 }
