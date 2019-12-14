@@ -10,6 +10,7 @@ include <MCAD/2Dshapes.scad>
 include <MCAD/regular_shapes.scad>
 include <./lib/util.scad>
 use <./lib/nutsnbolts.scad>;
+use <./lib/xt60.scad>;
 
 
 DIMENSIONS = [114, 50, 50];
@@ -30,69 +31,6 @@ PSU_MOUNT_HOLES = [
 
 
 SWITCH_SOCKET_PLATE_HULL = [48, 59, 2];
-
-
-module xt60_body(grips=true){
-  length = 16;
-  width = 7.5;
-  height = 8;
-
-  diag_side = 3.5;
-
-  grip_offset_x = 1.85;
-  grip_offset_z = 0.85;
-  grip_length = 10;
-  grip_width = 0.5;
-  grip_height = 5.5;
-
-  // the main connector body
-  difference(){
-    cube([length, width, height], false);
-
-    translate([length, 0, height/2])
-    rotate([0, 0, 45])
-    cube([diag_side, diag_side, height+epsilon], true);
-
-    translate([length, width, height/2])
-    rotate([0, 0, 45])
-    cube([diag_side, diag_side, height+epsilon], true);
-
-    if (grips){
-      translate([grip_offset_x, 0, grip_offset_z])
-      cube([grip_length, grip_width, grip_height], false);
-
-      translate([grip_offset_x, width-grip_width, grip_offset_z])
-      cube([grip_length, grip_width, grip_height], false);
-    }
-  }
-}
-
-module xt60_female_top(){
-  translate([0.85, 0.85, 8])
-    resize([14, 6, 8])
-      xt60_body(grips=false);
-}
-
-
-module xt60_female(){
-  xt60_body();
-  xt60_female_top();
-}
-
-module xt60_male_top(){
-  difference(){
-    translate([0, 0, 8])
-      xt60_body(grips=false);
-
-    translate([0, 0, epsilon])
-      xt60_female_top();
-  }
-}
-
-module xt60_male(){
-  xt60_body();
-  xt60_male_top();
-}
 
 module xt60_male_mount(){
 	union(){
