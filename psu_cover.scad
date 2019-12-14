@@ -1,9 +1,16 @@
+/*!
+ * @author Dirk Van Haerenborgh <vhdirk@gmail.com>
+ * @brief A cover for my 3D printer PSU
+ */
+
+// Units: mm.
 
 include <MCAD/units.scad>
 include <MCAD/2Dshapes.scad>
 include <MCAD/regular_shapes.scad>
-include <./modules/util.scad>
-use <./modules/nutsnbolts.scad>;
+include <./lib/util.scad>
+use <./lib/nutsnbolts.scad>;
+
 
 DIMENSIONS = [114, 50, 50];
 
@@ -25,19 +32,72 @@ PSU_MOUNT_HOLES = [
 SWITCH_SOCKET_PLATE_HULL = [48, 59, 2];
 
 
-module xt60(){
-  union(){
-    cube([13,8.3,7.7]);
-    translate([13,0,0])
-      rotate([0,0,45])
-        cube([6,6,7.7]);
+module xt60_body(grips=true){
+  length = 16;
+  width = 7.5;
+  height = 8;
+
+  diag_side = 3.5;
+
+  grip_offset_x = 1.85;
+  grip_offset_z = 0.85;
+  grip_length = 10;
+  grip_width = 0.5;
+  grip_height = 5.5;
+
+  // the main connector body
+  difference(){
+    cube([length, width, height], false);
+
+    translate([length, 0, height/2])
+    rotate([0, 0, 45])
+    cube([diag_side, diag_side, height+epsilon], true);
+
+    translate([length, width, height/2])
+    rotate([0, 0, 45])
+    cube([diag_side, diag_side, height+epsilon], true);
+
+    if (grips){
+      translate([grip_offset_x, 0, grip_offset_z])
+      cube([grip_length, grip_width, grip_height], false);
+
+      translate([grip_offset_x, width-grip_width, grip_offset_z])
+      cube([grip_length, grip_width, grip_height], false);
+    }
   }
 }
 
-module xt60_mount(){
+module xt60_female_top(){
+  translate([0.85, 0.85, 8])
+    resize([14, 6, 8])
+      xt60_body(grips=false);
+}
+
+
+module xt60_female(){
+  xt60_body();
+  xt60_female_top();
+}
+
+module xt60_male_top(){
+  difference(){
+    translate([0, 0, 8])
+      xt60_body(grips=false);
+
+    translate([0, 0, epsilon])
+      xt60_female_top();
+  }
+}
+
+module xt60_male(){
+  xt60_body();
+  xt60_male_top();
+}
+
+module xt60_male_mount(){
 	union(){
 		cube([26,15,7.7]);
-    xt60();
+    xt60_male();
 	}
 }
 
@@ -116,7 +176,7 @@ module enclosure() {
 
 
     translate([0, 0, DIMENSIONS[2]]){
-      color("gray")
+      color("silver")
       psu();
     }
 
@@ -140,8 +200,15 @@ union(){
 
 
 
-    translate([0, 0, -WALL_THICKNESS - epsilon]) {
-        xt60();
+  color("blue")
+    translate([-20, -20, 0]) {
+        xt60_male();
     }
+
+  color("blue")
+    translate([-40, -20, 0]) {
+        xt60_female();
+    }
+
 }
 

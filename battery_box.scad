@@ -9,7 +9,7 @@
  * @author Dirk Van Haerenborgh <vhdirk@gmail.com>
  * @brief A simple parametric battery box with lid and place for a switch.
  */
-
+// Units: mm.
 // preview[view:north, tilt:top diagonal]
 
 // Customizer parameters
@@ -105,7 +105,7 @@ $fn = 80;
 MANIFOLD_CORRECTION = 0.02;
 
 use <MCAD/boxes.scad>;
-use <./modules/nutsnbolts.scad>;
+use <./lib/nutsnbolts.scad>;
 
 
 if (part == "holder") {
