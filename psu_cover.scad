@@ -13,7 +13,7 @@ use <./lib/nutsnbolts.scad>;
 use <./lib/xt60.scad>;
 
 
-DIMENSIONS = [114, 50, 50];
+DIMENSIONS = [114, 50, 60];
 
 WALL_THICKNESS = 3.0;
 
@@ -32,11 +32,33 @@ PSU_MOUNT_HOLES = [
 
 SWITCH_SOCKET_PLATE_HULL = [48, 59, 2];
 
-module xt60_male_mount(){
-	union(){
-		cube([26,15,7.7]);
-    xt60_male();
+module xt60_plate_mount(){
+
+  padding = 3.0;
+
+	difference(){
+    // make a box where these connectors should fit in
+    cube([16 + 2*padding, 7.5 + 2*padding, 16 + padding]);
+
+    translate([padding, padding, 0]){
+      // cut away the space for the connector itself
+      translate([0, 0, padding-epsilon])
+        xt60_outer(16+epsilon*2);
+
+      // cut away the bottom for the wires
+      translate([0.85, 0.85, -1])
+        xt60_inner(height=padding+1);
+    }
 	}
+
+  // make 2 small ridges that snap in the connector grips
+  translate([2.5 + padding, padding, 3 + padding]){
+    cube([7, 0.5, 2]);
+  }
+
+  translate([2.5 + padding, padding + 7.5 - 0.5, 3 + padding]){
+    cube([7, 0.5, 2]);
+  }
 }
 
 
@@ -94,26 +116,29 @@ module enclosure() {
 
   difference() {
 
-      union(){
-      // the outer cube
-      translate([ -WALL_THICKNESS, -WALL_THICKNESS, -WALL_THICKNESS]) {
-          cube([
-                  DIMENSIONS[0] + WALL_THICKNESS * 2.0,
-                  DIMENSIONS[1] + WALL_THICKNESS * 2.0,
-                  DIMENSIONS[2] + WALL_THICKNESS,
-          ], false);
+    union(){
+    // the outer cube
+    translate([ -WALL_THICKNESS, -WALL_THICKNESS, -WALL_THICKNESS]) {
+      cube([
+          DIMENSIONS[0] + WALL_THICKNESS * 2.0,
+          DIMENSIONS[1] + WALL_THICKNESS * 2.0,
+          DIMENSIONS[2] + WALL_THICKNESS,
+        ], false);
       }
     }
 
     // cut out the inner cube
     cube([
-        DIMENSIONS[0],
-        DIMENSIONS[1],
-        DIMENSIONS[2] + epsilon,
+      DIMENSIONS[0],
+      DIMENSIONS[1],
+      DIMENSIONS[2] + epsilon,
     ], false);
 
+    // TODO: add a slanted edge in case the PSU is smaller than the cover
+    
 
-    translate([0, 0, DIMENSIONS[2]]){
+
+    translate([0, DIMENSIONS[1] - PSU_DIMENSIONS[1], DIMENSIONS[2]]){
       color("silver")
       psu();
     }
@@ -131,22 +156,26 @@ module enclosure() {
 union(){
   enclosure();
 
-  translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], -WALL_THICKNESS-2, 0])
-  rotate([-90, -90, 0])
+  translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]+WALL_THICKNESS/2, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
+  rotate([180, 180, 90])
   color("red")
   switch_socket();
 
+  color("red"){
+  translate([13.5, 19+WALL_THICKNESS, 19-WALL_THICKNESS-epsilon]) {
+    translate([0, 0, 0])
+    rotate([0, 180, 90])
+    xt60_plate_mount();
 
+    translate([13.5, 0, 0])
+    rotate([0, 180, 90])
+    xt60_plate_mount();
 
-  color("blue")
-    translate([-20, -20, 0]) {
-        xt60_male();
-    }
-
-  color("blue")
-    translate([-40, -20, 0]) {
-        xt60_female();
-    }
+    translate([27, 0, 0])
+    rotate([0, 180, 90])
+    xt60_plate_mount();
+  }
+  }
 
 }
 
