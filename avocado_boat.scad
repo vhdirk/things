@@ -40,7 +40,7 @@ linear_extrude( height = base_height ) {
 }
 
 // body
-difference(){
+union(){
     linear_extrude( height = body_height, slices = 2*(body_height) ) {
         polyShape(sides=outer_sides, 
                 radius=outer_radius,
@@ -49,7 +49,7 @@ difference(){
 
     rotate([90, 0, 0])
     translate([-13, 8, outer_radius])
-    linear_extrude(height=1, center=true, convexity=10)
+    linear_extrude(height=2, center=true, convexity=10)
     scale(0.175)
     import("hippo_segments1.svg");
 }

@@ -104,7 +104,7 @@ SWITCH_COMPARTIMENT_WIDTH_MIDDLE  = (SWITCH_COMPARTIMENT_WIDTH*1.25 - switch_wid
 $fn = 80;
 MANIFOLD_CORRECTION = 0.02;
 
-use <./modules/roundedcube.scad>;
+use <MCAD/boxes.scad>;
 use <./modules/nutsnbolts.scad>;
 
 
@@ -219,8 +219,8 @@ module holder()
 
   difference(){
 
-    translate([-BOX_DIMENSIONS[0]/2, -(BOX_DIMENSIONS[1] - SWITCH_COMPARTIMENT_WIDTH) /2, 0])
-    roundedcube([BOX_DIMENSIONS[0], BOX_DIMENSIONS[1], BOX_DIMENSIONS[2]], false, 1, "z");
+    translate([0, SWITCH_COMPARTIMENT_WIDTH/2, BOX_DIMENSIONS[2]/2])
+    roundedBox([BOX_DIMENSIONS[0], BOX_DIMENSIONS[1], BOX_DIMENSIONS[2]], 1, true);
 
     translate([0, SWITCH_COMPARTIMENT_WIDTH/2, (BOX_DIMENSIONS[2])/2])
     cube([MULTI_CELL_HOLDER_DIMENSIONS[0],
@@ -311,10 +311,7 @@ module switchCompartiment(){
 module cover()
 {
   translate([0, 0, COVER_THICKNESS/2.0])
-    roundedcube(COVER_DIMENSIONS,
-                  true,
-                  1,
-                  "z");
+    roundedBox(COVER_DIMENSIONS, 1, true);
 
   // Cover retainers            
   translate([0, -SWITCH_COMPARTIMENT_WIDTH/2, COVER_THICKNESS])
@@ -329,10 +326,7 @@ module lid()
 {
   translate([0, 0, LID_THICKNESS/2])
   difference(){
-      roundedcube(LID_DIMENSIONS,
-                    true,
-                    1,
-                    "z");
+      roundedBox(LID_DIMENSIONS, 1, true);
 
     // holes for bolts
     translate([-BOX_DIMENSIONS[0]/2, -(BOX_DIMENSIONS[1]) /2, 0]){
