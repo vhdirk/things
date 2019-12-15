@@ -10,8 +10,13 @@ include <MCAD/2Dshapes.scad>
 include <MCAD/regular_shapes.scad>
 include <./lib/util.scad>
 use <./lib/nutsnbolts.scad>;
+use <./lib/fuseholder.scad>;
 use <./lib/xt60.scad>;
 
+$fn=48;
+
+
+// TODO: make sure bottom of cover is flush with psu
 
 DIMENSIONS = [114, 50, 60];
 
@@ -169,22 +174,82 @@ module xt60_mounts_cutout(num_connectors=3){
 }
 
 
+module fuseholders_cutouts(num_fuses=3){
+
+  thin = true;
+  mid_height = 6.35;
+  start_height = thin ? mid_height-2 : mid_height;
+  end_height = 2;
+
+  total_height = start_height + (num_fuses-1)*mid_height + end_height;
+
+
+  // a slot where the fuse holder fits into
+  %translate([10.5, 26+epsilon, 0])
+    rotate([0, 0, 180])
+      cube([21, WALL_THICKNESS+2*epsilon, total_height], false);
+  
+
+  Hole_X_Offset = 9;     //Type 0 & 1 X Offset
+  Hole_Y_Offset = 13;     //Type 0 & 1 Y Offset
+
+  // cutouts for the bolts
+  translate([Hole_X_Offset+3, Hole_Y_Offset, -WALL_THICKNESS-epsilon])
+    rotate([0, 0, 180])
+      cylinder(r=1.5, h=WALL_THICKNESS+2*epsilon);
+  
+  translate([-Hole_X_Offset-3, Hole_Y_Offset, -WALL_THICKNESS-epsilon])
+    rotate([0, 0, 180])
+      cylinder(r=1.5, h=WALL_THICKNESS+2*epsilon);
+}
+
+
+module fuseholders_mount(num_fuses=3, thin=false){
+  
+  mid_height = 6.35;
+  start_height = thin ? mid_height-2 : mid_height;
+
+  fuseholder_start(thin);
+
+  translate([0, 0, start_height]){
+    for (f = [0:num_fuses-2]){
+      translate([0, 0, mid_height*f])
+        fuseholder_mid();
+    }
+  }
+
+  translate([0, 0, (num_fuses-1)*mid_height + start_height]){
+    fuseholder_end();
+  }
+
+}
+
 
 
 union(){
 
+  
   difference(){
     enclosure();
 
     xt60_mounts_cutout();
+
+    translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]+WALL_THICKNESS/2, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
+    rotate([180, 180, 90])
+    color("red")
+    switch_socket();
+  
+
+    translate([15, 26-WALL_THICKNESS, 0])
+      rotate([0, 0, 180]){
+      %fuseholders_mount(thin=true);
+
+      fuseholders_cutouts();
+
+    }
   }
 
-  translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]+WALL_THICKNESS/2, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
-  rotate([180, 180, 90])
-  color("red")
-  switch_socket();
-
-  color("red"){
+  color("blue"){
     xt60_mounts();
   }
 

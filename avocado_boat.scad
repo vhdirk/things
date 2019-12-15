@@ -34,7 +34,7 @@ linear_extrude( height = base_height ) {
                   radius=outer_radius,
                   solid="yes" );
 
-        polyShape(sides=0,
+        polyShape(sides=360,
             radius=inner_radius,
             solid="yes" );
     }
@@ -57,7 +57,7 @@ union(){
 
 
 linear_extrude( height = body_height, slices = 2*(body_height)  ) {
-    polyShape(sides=0,
+    polyShape(sides=360,
             radius=inner_radius,
             solid="no" );
 }
@@ -69,21 +69,21 @@ intersection(){
 
         union(){
             translate([0,inner_radius])
-                cylinder(h=body_height*0.8, r=fin_radius);
+                cylinder(h=body_height*0.8, r=fin_radius, $fn=360);
             
             rotate([0,0,120]) 
             translate([0,inner_radius])
-                cylinder(h=body_height*0.8, r=fin_radius);
+                cylinder(h=body_height*0.8, r=fin_radius, $fn=360);
 
             rotate([0,0,-120]) 
             translate([0,inner_radius])
-                cylinder(h=body_height*0.8, r=fin_radius);
+                cylinder(h=body_height*0.8, r=fin_radius, $fn=360);
 
         }
 
         union(){
             translate([0,0,(inner_radius+thickness/2)])
-            sphere(r=inner_radius+thickness*1.6);
+            sphere(r=inner_radius+thickness*1.6, $fn=360);
 
 
         }

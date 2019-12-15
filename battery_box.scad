@@ -40,6 +40,11 @@ switch_knob_travel              = 10.2 + 1.5; // 2 * 1 mm extra for clearance
 lid_bolt_diameter               = 3.0;
 logo                            = true;
 
+include <MCAD/units.scad>
+use <MCAD/boxes.scad>;
+use <./lib/nutsnbolts.scad>;
+use <./lib/util.scad>;
+
 /* [Hidden] */
 // DO NOT CHANGE THESE
 AA_CELL_LENGTH                    = 50.5;     // 49.2 - 50.5mm nominal
@@ -70,7 +75,6 @@ CONTACT_RETAINER_CORNER_RADIUS    = 3.0;
 CONTACT_LUG_DIMENSIONS            = [3.2, CONTACT_DIMENSIONS[1], 8.7];
 MOUNT_LUG_INSET                   = 12;
 MOUNT_LUG_THICKNESS               = 4;
-MOUNTING_LUG_SCALING              = 1;    
 UNDERSIDE_CHANNELLING_THICKNESS   = BOTTOM_THICKNESS - 1;
 LUG_VOID_LENGTH                   = (CONTACT_LUG_DIMENSIONS[2] - (BOTTOM_THICKNESS - UNDERSIDE_CHANNELLING_THICKNESS)) + 1;
 LUG_VOID_WIDTH                    = CONTACT_LUG_DIMENSIONS[0] + 1;
@@ -102,10 +106,6 @@ LID_DIMENSIONS                    = [ BOX_DIMENSIONS[0],
 SWITCH_COMPARTIMENT_WIDTH_MIDDLE  = (SWITCH_COMPARTIMENT_WIDTH*1.25 - switch_width)/2;
 
 $fn = 80;
-MANIFOLD_CORRECTION = 0.02;
-
-use <MCAD/boxes.scad>;
-use <./lib/nutsnbolts.scad>;
 
 
 if (part == "holder") {
@@ -138,8 +138,8 @@ module coverRetainer()
 
 module coverRetainerVoid()
 {
-  translate([0, 0, COVER_RETAINER_HEIGHT / 2 + MANIFOLD_CORRECTION])
-    cylinder(r=(COVER_RETAINER_DIAMETER + cover_retainer_clearance) / 2, h=COVER_RETAINER_HEIGHT + MANIFOLD_CORRECTION * 2, center=true);
+  translate([0, 0, COVER_RETAINER_HEIGHT / 2 + epsilon])
+    cylinder(r=(COVER_RETAINER_DIAMETER + cover_retainer_clearance) / 2, h=COVER_RETAINER_HEIGHT + epsilon * 2, center=true);
 }
 
 
@@ -149,8 +149,8 @@ module all()
   rotate([0, 0, 90])
   {
     lugs_translate_y = (mounting_lugs == "topbottom") ? 
-                            (-((mounting_lug_screw_diameter * MOUNTING_LUG_SCALING * MOUNTING_LUG_SCALING) * 2 + 
-                                (mounting_lug_screw_diameter * MOUNTING_LUG_SCALING) * 2))
+                            (-((mounting_lug_screw_diameter) * 2 + 
+                                (mounting_lug_screw_diameter) * 2))
                                                       : 0;
     
     translate([0, SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2 -(lugs_translate_y - HOLDER_COVER_SPACING)/ 2, 0])
@@ -187,7 +187,7 @@ module holder()
       }
 
       // carve away some of the underside?
-      translate([0, 0, -COVER_DIFFERENCE_DIMENSIONS[2] / 2 + MANIFOLD_CORRECTION])
+      translate([0, 0, -COVER_DIFFERENCE_DIMENSIONS[2] / 2 + epsilon])
         cube(COVER_DIFFERENCE_DIMENSIONS, center=true);
       
 
@@ -379,7 +379,7 @@ module coverPlateBlock()
 
 module lugVoid()
 {
-  translate([0, -(LUG_VOID_LENGTH - LUG_VOID_WIDTH / 2) + MANIFOLD_CORRECTION, 0])
+  translate([0, -(LUG_VOID_LENGTH - LUG_VOID_WIDTH / 2) + epsilon, 0])
   {
     cylinder(r=LUG_VOID_WIDTH / 2, h=UNDERSIDE_CHANNELLING_THICKNESS, center=true);
     translate([0, (LUG_VOID_LENGTH - LUG_VOID_WIDTH / 2) / 2, 0])
@@ -391,7 +391,7 @@ module lugVoid()
 
 module horizontalChannel(width)
 {
-  cube([SINGLE_CELL_HOLDER_DIMENSIONS[0] + MANIFOLD_CORRECTION * 2,
+  cube([SINGLE_CELL_HOLDER_DIMENSIONS[0] + epsilon * 2,
         width,
         UNDERSIDE_CHANNELLING_THICKNESS], center=true);
 }
@@ -409,7 +409,7 @@ module verticalChannel(width)
 
 module undersideTabsAndChanneling()
 {
-  translate([0, 0, UNDERSIDE_CHANNELLING_THICKNESS / 2 - MANIFOLD_CORRECTION]) {
+  translate([0, 0, UNDERSIDE_CHANNELLING_THICKNESS / 2 - epsilon]) {
     translate([0, SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2 - CONTACT_DIMENSIONS[1], 0]) {
       lugVoid();
         
@@ -437,46 +437,28 @@ module undersideTabsAndChanneling()
 
 
 
-module mountingLug()
-{
-  translate([-mounting_lug_screw_diameter * MOUNTING_LUG_SCALING * MOUNTING_LUG_SCALING, 0, - COVER_THICKNESS])
-    difference()
-    {
-      union()
-      {
-        cylinder(r=mounting_lug_screw_diameter * MOUNTING_LUG_SCALING, h=mounting_lug_thickness + COVER_THICKNESS);
-        translate([0, -mounting_lug_screw_diameter * MOUNTING_LUG_SCALING, 0])
-            cube([ mounting_lug_screw_diameter * MOUNTING_LUG_SCALING * MOUNTING_LUG_SCALING,
-                    mounting_lug_screw_diameter * MOUNTING_LUG_SCALING * 2,
-                    mounting_lug_thickness + COVER_THICKNESS]);
-
-      }
-      translate([0, 0, -MANIFOLD_CORRECTION])
-        cylinder(r=mounting_lug_screw_diameter / 2, h=mounting_lug_thickness + COVER_THICKNESS + MANIFOLD_CORRECTION * 2);
-    }
-}
 
 
 module multipleCells(cellCount, mounting_lugs)
 {
   if (mounting_lugs == "sides")
   {
-    translate([-(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, 0])
+    translate([-(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, -COVER_THICKNESS])
     {
       translate([0, BOX_DIMENSIONS[1] / 2 - LID_BOLT_SPACE_WIDTH, 0])
-        mountingLug();
+        mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
       translate([0, -((BOX_DIMENSIONS[1] - LID_BOLT_SPACE_WIDTH) / 2 -(MOUNT_LUG_INSET + mounting_lug_screw_diameter)), 0])
-        mountingLug();
+        mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
     }
 
-    translate([(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, 0])
+    translate([(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, -COVER_THICKNESS])
     {
       translate([0, BOX_DIMENSIONS[1] / 2 - LID_BOLT_SPACE_WIDTH, 0])
         rotate([0, 0, 180])
-          mountingLug();
+          mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
       translate([0, -((BOX_DIMENSIONS[1] - LID_BOLT_SPACE_WIDTH) / 2 - (MOUNT_LUG_INSET + mounting_lug_screw_diameter)), 0])
         rotate([0, 0, 180])
-          mountingLug();
+          mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
     }
   }
     
@@ -492,10 +474,10 @@ module multipleCells(cellCount, mounting_lugs)
       {
         translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], -SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2, 0])
           rotate([0, 0, 90])
-            mountingLug();
+            mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
         translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2, 0])
           rotate([0, 0, -90])
-            mountingLug();
+            mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
       }
     }
   }
@@ -524,7 +506,7 @@ module singleCell(index)
     union()
     {
       // The retainer blocks
-      translate([0, 0, -MANIFOLD_CORRECTION])
+      translate([0, 0, -epsilon])
       {
         translate([0, (SINGLE_CELL_HOLDER_DIMENSIONS[1] - CONTACT_RETAINER_DIMENSIONS[1]) / 2, 0])
           retainerBlock(CONTACT_RETAINER_DIMENSIONS, CONTACT_RETAINER_CORNER_RADIUS);
@@ -550,7 +532,7 @@ module singleCell(index)
         // The cylinder cutout for fingers
         translate([x_offset, 0, AA_CELL_DIAMETER / 2 + BOTTOM_THICKNESS])
           rotate([0, 90, 0])
-            cylinder(r=AA_CELL_DIAMETER / 2, h=width + MANIFOLD_CORRECTION * 2, center=true);
+            cylinder(r=AA_CELL_DIAMETER / 2, h=width + epsilon * 2, center=true);
         
         // The positive mark text
         translate((index % 2 == 0) ? TEXT_OFFSET_POS_TOP : TEXT_OFFSET_POS_BOTTOM)
@@ -641,7 +623,7 @@ module contact()
       cube(CONTACT_DIMENSIONS, center=true);
     
     // Solder Lug
-    translate([0, 0, -(CONTACT_LUG_DIMENSIONS[2] / 2 - MANIFOLD_CORRECTION)]) {
+    translate([0, 0, -(CONTACT_LUG_DIMENSIONS[2] / 2 - epsilon)]) {
       cube(CONTACT_LUG_DIMENSIONS, center=true);
       //translate([0, (CONTACT_LUG_DIMENSIONS[2] - 1) / 2, CONTACT_LUG_DIMENSIONS[2] / 2 - 2 + CONTACT_LUG_DIMENSIONS[1] / 4 ])
       //  % cube([CONTACT_LUG_DIMENSIONS[0], CONTACT_LUG_DIMENSIONS[2] - 1, CONTACT_LUG_DIMENSIONS[1]], center=true);
