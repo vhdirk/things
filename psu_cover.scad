@@ -18,9 +18,9 @@ $fn=48;
 
 // TODO: make sure bottom of cover is flush with psu
 
-DIMENSIONS = [114, 50, 60];
-
 WALL_THICKNESS = 3.0;
+DIMENSIONS = [114, 50-WALL_THICKNESS, 60];
+
 
 
 PSU_DIMENSIONS = [114, 50];
@@ -103,61 +103,62 @@ module psu_mount_holes(){
 
 module psu(){
   //draw a bit of the PSU so we now where to keep space
-  translate([0, 0, -20]) {
+  translate([0, WALL_THICKNESS, -20]) {
+
+    // main block
     cube([ PSU_DIMENSIONS[0],
-           PSU_DIMENSIONS[1],
-           20
+           PSU_DIMENSIONS[1]+epsilon,
+           20+epsilon
       ], false);
 
-      // draw the PSU contacts rail
-      translate([0, PSU_DIMENSIONS[1]-PSU_RAIL_DIMENSIONS[1], -PSU_RAIL_DIMENSIONS[2]]) {
-        cube(PSU_RAIL_DIMENSIONS, false);
-      }
+
+    // PSU flaps
+    translate([0, 0, -PSU_RAIL_DIMENSIONS[2]]) {
+      cube([ WALL_THICKNESS+epsilon,
+          PSU_DIMENSIONS[1]+epsilon,
+          PSU_RAIL_DIMENSIONS[2]+epsilon
+        ], false);
     }
 
-    psu_mount_holes();
+    // draw the PSU contacts rail
+    translate([0, PSU_DIMENSIONS[1]-PSU_RAIL_DIMENSIONS[1], -PSU_RAIL_DIMENSIONS[2]]) {
+      cube([ PSU_RAIL_DIMENSIONS[0],
+          PSU_RAIL_DIMENSIONS[1]+epsilon,
+          PSU_RAIL_DIMENSIONS[2]+epsilon
+        ], false);
+    }
+  }
+
+  psu_mount_holes();
 }
 
 
 module enclosure() {
 
-  difference() {
-
-    union(){
+  difference(){
     // the outer cube
-    translate([ -WALL_THICKNESS, -WALL_THICKNESS, -WALL_THICKNESS]) {
+    translate([ epsilon, -WALL_THICKNESS, -WALL_THICKNESS]) {
       cube([
-          DIMENSIONS[0] + WALL_THICKNESS * 2.0,
+          DIMENSIONS[0] + WALL_THICKNESS,
           DIMENSIONS[1] + WALL_THICKNESS * 2.0,
           DIMENSIONS[2] + WALL_THICKNESS,
         ], false);
       }
-    }
 
     // cut out the inner cube
+    translate([ WALL_THICKNESS, 0, 0])
     cube([
-      DIMENSIONS[0],
+      DIMENSIONS[0]-WALL_THICKNESS+epsilon,
       DIMENSIONS[1],
       DIMENSIONS[2] + epsilon,
     ], false);
-
-    // TODO: add a slanted edge in case the PSU is smaller than the cover
-    
-
-
-    translate([0, DIMENSIONS[1] - PSU_DIMENSIONS[1], DIMENSIONS[2]]){
-      color("silver")
-      psu();
-    }
-
-
-
   }
 
+  // TODO: perhaps add a slanted edge in case the PSU is smaller than the cover
 }
 
-module xt60_mounts(num_connectors=3){
-  translate([0, DIMENSIONS[1]-19-WALL_THICKNESS, 11-WALL_THICKNESS-epsilon]) {
+module xt60_mounts(num_connectors=2){
+  translate([WALL_THICKNESS, DIMENSIONS[1]-19-WALL_THICKNESS, 11-WALL_THICKNESS-epsilon]) {
 
     for(c = [0:num_connectors-1]){
       translate([c*13.5, 0, 0])
@@ -167,16 +168,15 @@ module xt60_mounts(num_connectors=3){
   }
 }
 
-module xt60_mounts_cutout(num_connectors=3){
-  translate([0, DIMENSIONS[1]-19-WALL_THICKNESS, -WALL_THICKNESS-epsilon]) {
+module xt60_mounts_cutout(num_connectors=2){
+  translate([WALL_THICKNESS, DIMENSIONS[1]-19-WALL_THICKNESS, -WALL_THICKNESS-epsilon]) {
     cube([num_connectors*13.5, 19, WALL_THICKNESS+epsilon*2]);
   }
 }
 
 
-module fuseholders_cutouts(num_fuses=3){
+module fuseholders_cutouts(num_fuses=3, thin=false){
 
-  thin = true;
   mid_height = 6.35;
   start_height = thin ? mid_height-2 : mid_height;
   end_height = 2;
@@ -226,32 +226,46 @@ module fuseholders_mount(num_fuses=3, thin=false){
 
 
 
-union(){
+module main(){
 
   
   difference(){
+
+    // the main enclosure
     enclosure();
 
-    xt60_mounts_cutout();
+    // cut out parts for fitting it on the psu
+    translate([0, DIMENSIONS[1] - PSU_DIMENSIONS[1], DIMENSIONS[2]]){
+      color("silver")
+      psu();
+    }
 
-    translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]+WALL_THICKNESS/2, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
+    // cut out the holes for the main switch
+    translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]-0.5, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
     rotate([180, 180, 90])
     color("red")
     switch_socket();
   
 
-    translate([15, 26-WALL_THICKNESS, 0])
+    // cut out holes the fuseholder
+    translate([15+WALL_THICKNESS, 26-WALL_THICKNESS, 0])
       rotate([0, 0, 180]){
       %fuseholders_mount(thin=true);
 
       fuseholders_cutouts();
 
     }
+
+    // open holes for xt60 connectors
+    xt60_mounts_cutout();
   }
 
+  // brackets for xt60 connectors
   color("blue"){
     xt60_mounts();
   }
 
 }
 
+
+main();
