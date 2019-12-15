@@ -182,15 +182,19 @@ module test_fuseholder(){
 
 }
 
+function fuseholders_height(num_fuses=2, thin=false) = 
+  let ( mid_height = 6.35, end_height = 2, start_height = thin ? mid_height-end_height : mid_height)
+  start_height + (num_fuses-1)*mid_height + end_height;
 
-module test_fuseholder_stacked(num_fuses=2, thin=false){
+
+module fuseholders_stacked(num_fuses=2, thin=false){
   
   $fn=48;
 
   mid_height = 6.35;
   start_height = thin ? mid_height-2 : mid_height;
 
-  // fuseholder_start(thin);
+  fuseholder_start(thin);
 
   translate([0, 0, start_height]){
     for (f = [0:num_fuses-2]){
@@ -199,13 +203,13 @@ module test_fuseholder_stacked(num_fuses=2, thin=false){
     }
   }
 
-  // translate([0, 0, (num_fuses-1)*mid_height + start_height]){
-  //   fuseholder_end();
-  // }
+  translate([0, 0, (num_fuses-1)*mid_height + start_height]){
+    fuseholder_end();
+  }
 
 }
 
 
-test_fuseholder_stacked(3, thin=true);
+// fuseholders_stacked(3, thin=true);
 
 

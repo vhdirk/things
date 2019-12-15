@@ -6,21 +6,21 @@
 // Units: mm.
 
 include <MCAD/units.scad>
-include <MCAD/2Dshapes.scad>
-include <MCAD/regular_shapes.scad>
+use <MCAD/2Dshapes.scad>
+use <MCAD/regular_shapes.scad>
+include <MCAD/materials.scad>
+use <MCAD/triangles.scad>
 include <./lib/util.scad>
 use <./lib/nutsnbolts.scad>;
 use <./lib/fuseholder.scad>;
 use <./lib/xt60.scad>;
+use <./lib/shapes.scad>;
 
 $fn=48;
 
 
-// TODO: make sure bottom of cover is flush with psu
-
 WALL_THICKNESS = 3.0;
 DIMENSIONS = [114, 50-WALL_THICKNESS, 60];
-
 
 
 PSU_DIMENSIONS = [114, 50];
@@ -185,7 +185,7 @@ module fuseholders_cutouts(num_fuses=3, thin=false){
 
 
   // a slot where the fuse holder fits into
-  %translate([10.5, 26+epsilon, 0])
+  translate([10.5, 26+epsilon, 0])
     rotate([0, 0, 180])
       cube([21, WALL_THICKNESS+2*epsilon, total_height], false);
   
@@ -204,26 +204,51 @@ module fuseholders_cutouts(num_fuses=3, thin=false){
 }
 
 
-module fuseholders_mount(num_fuses=3, thin=false){
-  
-  mid_height = 6.35;
-  start_height = thin ? mid_height-2 : mid_height;
+module fuseholders_cover(num_fuses=3){
 
-  fuseholder_start(thin);
+  translate([-10.5-WALL_THICKNESS+0.5, -26 - 2*WALL_THICKNESS, -WALL_THICKNESS]){
+    difference(){
 
-  translate([0, 0, start_height]){
-    for (f = [0:num_fuses-2]){
-      translate([0, 0, mid_height*f])
-        fuseholder_mid();
+      outer_length = 20 + 2*WALL_THICKNESS;
+      outer_height = fuseholders_height(num_fuses)+2*WALL_THICKNESS;
+
+      diagonal = 6*sqrt(2);
+      union(){
+        cube([outer_length, 6, outer_height]);
+
+        // add some fancy slanted edges
+        translate([-1.5, 4, outer_height/2])
+        rotate([0, 0, 180])
+        basic_triangle(6, 5, outer_height, true);
+
+        translate([outer_length + 1.5, 4, outer_height/2])
+        rotate([0, 0, -90])
+        basic_triangle(5, 6, outer_height, true);
+
+        translate([outer_length/2, 4, outer_height + 1.5])
+        rotate([0, 0, -90])
+        rotate([90, 0, 0])
+        basic_triangle(5, 6, outer_length, true);
+
+        translate([outer_length, 6, outer_height])
+        rotate([90, 0, 0])
+        cylinder(6,5,00,$fn=4);
+
+        translate([0, 6, outer_height])
+        rotate([90, 0, 0])
+        cylinder(6,5,00,$fn=4);
+      }
+      
+      translate([WALL_THICKNESS, -epsilon, WALL_THICKNESS])
+      cube([20, 6+2*epsilon, fuseholders_height(3)]);
     }
-  }
 
-  translate([0, 0, (num_fuses-1)*mid_height + start_height]){
-    fuseholder_end();
+
+
+
   }
 
 }
-
 
 
 module main(){
@@ -236,7 +261,7 @@ module main(){
 
     // cut out parts for fitting it on the psu
     translate([0, DIMENSIONS[1] - PSU_DIMENSIONS[1], DIMENSIONS[2]]){
-      color("silver")
+      color(Aluminum)
       psu();
     }
 
@@ -250,10 +275,9 @@ module main(){
     // cut out holes the fuseholder
     translate([15+WALL_THICKNESS, 26-WALL_THICKNESS, 0])
       rotate([0, 0, 180]){
-      %fuseholders_mount(thin=true);
+      %fuseholders_stacked(3, thin=false);
 
       fuseholders_cutouts();
-
     }
 
     // open holes for xt60 connectors
@@ -264,6 +288,11 @@ module main(){
   color("blue"){
     xt60_mounts();
   }
+
+  translate([15+WALL_THICKNESS, 26-WALL_THICKNESS, 0]){
+    fuseholders_cover(3);
+  }
+
 
 }
 
