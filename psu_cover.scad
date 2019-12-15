@@ -37,6 +37,8 @@ PSU_MOUNT_HOLES = [
 
 SWITCH_SOCKET_PLATE_HULL = [48, 59, 2];
 
+
+// a way of shoving the xt60 connectors into a mount
 module xt60_plate_mount(half=false){
 
   padding = 3.0;
@@ -101,8 +103,8 @@ module psu_mount_holes(){
 
 
 
+//draw a bit of the PSU so we now where to keep space
 module psu(){
-  //draw a bit of the PSU so we now where to keep space
   translate([0, WALL_THICKNESS, -20]) {
 
     // main block
@@ -158,7 +160,7 @@ module enclosure() {
 }
 
 module xt60_mounts(num_connectors=2){
-  translate([WALL_THICKNESS, DIMENSIONS[1]-19-WALL_THICKNESS, 11-WALL_THICKNESS-epsilon]) {
+  translate([0, 0, 11]) {
 
     for(c = [0:num_connectors-1]){
       translate([c*13.5, 0, 0])
@@ -169,9 +171,7 @@ module xt60_mounts(num_connectors=2){
 }
 
 module xt60_mounts_cutout(num_connectors=2){
-  translate([WALL_THICKNESS, DIMENSIONS[1]-19-WALL_THICKNESS, -WALL_THICKNESS-epsilon]) {
-    cube([num_connectors*13.5, 19, WALL_THICKNESS+epsilon*2]);
-  }
+  cube([num_connectors*13.5, 19, WALL_THICKNESS+epsilon*2]);
 }
 
 
@@ -206,11 +206,13 @@ module fuseholders_cutouts(num_fuses=3, thin=false){
 
 module fuseholders_cover(num_fuses=3){
 
+  z_comp = 1; // the fuse mounts may no be symetric
+
   translate([-10.5-WALL_THICKNESS+0.5, -26 - 2*WALL_THICKNESS, -WALL_THICKNESS]){
     difference(){
 
       outer_length = 20 + 2*WALL_THICKNESS;
-      outer_height = fuseholders_height(num_fuses)+2*WALL_THICKNESS;
+      outer_height = z_comp + fuseholders_height(num_fuses)+2*WALL_THICKNESS;
 
       diagonal = 6*sqrt(2);
       union(){
@@ -240,27 +242,48 @@ module fuseholders_cover(num_fuses=3){
       }
       
       translate([WALL_THICKNESS, -epsilon, WALL_THICKNESS])
-      cube([20, 6+2*epsilon, fuseholders_height(3)]);
+      cube([20, 6+2*epsilon, fuseholders_height(3)+z_comp]);
     }
-
-
-
-
   }
+}
+
+
+// we like to bring out the PSU voltage regulator potmeter and
+// on/off led
+module psu_regulator_led_cutouts(){
+  //TODO
+}
+
+
+// provide space for the 24V->12V voltage regulator
+module voltage_regulator_cutouts(){
+  //TODO
 
 }
+
+// provide space for the 12v barrel connector
+module barrel_cutout(){
+  // requires only a single hole of 11mm dia.
+  cylinder(WALL_THICKNESS+epsilon*2, 11/2, 11/2);
+}
+
+
 
 
 module main(){
 
-  
+  xt60_position = [WALL_THICKNESS, DIMENSIONS[1]-19-WALL_THICKNESS, -WALL_THICKNESS-epsilon];
+  barrel_position = [WALL_THICKNESS + 26+11+1, DIMENSIONS[1]-11/3*2-WALL_THICKNESS, -WALL_THICKNESS-epsilon];
+  psu_position = [0, DIMENSIONS[1] - PSU_DIMENSIONS[1], DIMENSIONS[2]];
+  fuseholder_position = [15+WALL_THICKNESS, 26-WALL_THICKNESS, 0];
+
   difference(){
 
     // the main enclosure
     enclosure();
 
     // cut out parts for fitting it on the psu
-    translate([0, DIMENSIONS[1] - PSU_DIMENSIONS[1], DIMENSIONS[2]]){
+    translate(psu_position){
       color(Aluminum)
       psu();
     }
@@ -273,7 +296,7 @@ module main(){
   
 
     // cut out holes the fuseholder
-    translate([15+WALL_THICKNESS, 26-WALL_THICKNESS, 0])
+    translate(fuseholder_position)
       rotate([0, 0, 180]){
       %fuseholders_stacked(3, thin=false);
 
@@ -281,15 +304,23 @@ module main(){
     }
 
     // open holes for xt60 connectors
-    xt60_mounts_cutout();
+    translate(xt60_position)
+      xt60_mounts_cutout();
+
+    // open hole for 12v barrel connector
+    translate(barrel_position)
+      barrel_cutout();
   }
 
   // brackets for xt60 connectors
   color("blue"){
-    xt60_mounts();
+    translate(xt60_position)
+      xt60_mounts();
+
+
   }
 
-  translate([15+WALL_THICKNESS, 26-WALL_THICKNESS, 0]){
+  translate(fuseholder_position){
     fuseholders_cover(3);
   }
 
