@@ -44,6 +44,6 @@ module mount_column(inner=2.8, outer=5.8, height=10, bottom=true) {
 
     offset = bottom ? 5 : 0;
 
-    translate([0,0,offset]) cylinder(r=inner/2, h=height-offset+epsilon);
+    translate([0,0,offset-epsilon*2]) cylinder(r=inner/2, h=height-offset+epsilon*4);
   }
 }

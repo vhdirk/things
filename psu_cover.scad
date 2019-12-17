@@ -17,7 +17,7 @@ use <./lib/xt60.scad>;
 use <./lib/shapes.scad>;
 include <./lib/lm2596.scad>;
 
-$fn=48;
+$fn=80;
 
 
 WALL_THICKNESS = 3.0;
@@ -77,12 +77,12 @@ module switch_socket_cutouts(){
   linear_extrude(2)
   polygon(points=[[10, 0], [38, 0], [48, 29.5], [38, 59], [10, 59], [0, 29.5]]);
 
-  translate([4, 29.5, 0]){
+  translate([4, 29.5, -epsilon]){
     rotate([180, 0, 0])
     hole_through("M3", l=10);
   }
 
-  translate([44, 29.5, 0]){
+  translate([44, 29.5, -epsilon]){
     rotate([180, 0, 0])
     hole_through("M3", l=10);
   }
@@ -94,7 +94,7 @@ module switch_socket_cutouts(){
 
 module switch_socket_mounts(){
 
-  translate([0, 29.5, 5.5]){
+  translate([0, 29.5, 5]){
     translate([4, 0, 0]){
       mount_column(2.8, 5.8, 5.5, false);
     }
@@ -110,10 +110,10 @@ module switch_socket_mounts(){
 // so they can be cut out
 module psu_mount_holes(){
   for (h = PSU_MOUNT_HOLES){
-    translate([-epsilon, 0, 0])
+    translate([-epsilon*2, 0, 0])
     translate(h)
       rotate([0, -90, 0]){
-      hole_through("M3", l=WALL_THICKNESS + epsilon*2);
+      hole_through("M3", l=WALL_THICKNESS + epsilon*4);
     };
   };
 }
@@ -445,7 +445,8 @@ module main(){
   }
 
   color("red")
-  translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]-0.5, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
+  translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]-0.5,
+            -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]-epsilon])
   rotate([180, 180, 90])
   switch_socket_mounts();
 

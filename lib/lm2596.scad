@@ -87,6 +87,8 @@ module lm2596led_panel(thickness=PANEL_THICKNESS,
       }
     }
 
+    translate([-panel_dimensions[0], -panel_dimensions[1], -thickness*2])
+    cube([panel_dimensions[0]*3, panel_dimensions[1]*3, thickness], false);
 
 
     // hole for voltage adjust
@@ -96,11 +98,11 @@ module lm2596led_panel(thickness=PANEL_THICKNESS,
         cylinder(r=1.5, h=thickness + epsilon*2);
 
       // holes for buttons
-      translate([0, LM2596LED_PCB_DIMENSIONS[1]/2 - 4.5, 0]){
+      translate([0, LM2596LED_PCB_DIMENSIONS[1]/2 - 4.5, -epsilon*2]){
         translate([-16.8, 0, 0])
-          cylinder(r=1.5, h=thickness+epsilon*3);
+          cylinder(r=1.5, h=10);
         translate([ 16.8, 0, 0])
-          cylinder(r=1.5, h= thickness+epsilon*3);
+          cylinder(r=1.5, h=10);
       }
 
       // voltage display cutout
