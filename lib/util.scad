@@ -18,7 +18,7 @@ module cubecxy(size){
 module test_square_pyramid() {}
 
 
-module mounting_lug(inner_radius, height, outer_radius=undef)
+module mount_lug(inner_radius, height, outer_radius=undef)
 {
   outer_radius = outer_radius ? outer_radius : inner_radius * 2;
 
@@ -35,4 +35,15 @@ module mounting_lug(inner_radius, height, outer_radius=undef)
       translate([0, 0, -epsilon])
         cylinder(r=inner_radius, h=height + epsilon * 2);
     }
+}
+
+
+module mount_column(inner=2.8, outer=5.8, height=10, bottom=true) {
+  difference() {
+    cylinder(r=outer/2, h=height);
+
+    offset = bottom ? 5 : 0;
+
+    translate([0,0,offset]) cylinder(r=inner/2, h=height-offset+epsilon);
+  }
 }

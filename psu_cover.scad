@@ -15,12 +15,13 @@ use <./lib/nutsnbolts.scad>;
 use <./lib/fuseholder.scad>;
 use <./lib/xt60.scad>;
 use <./lib/shapes.scad>;
+include <./lib/lm2596.scad>;
 
 $fn=48;
 
 
 WALL_THICKNESS = 3.0;
-DIMENSIONS = [114, 50-WALL_THICKNESS, 60];
+DIMENSIONS = [114, 50-WALL_THICKNESS, 65];
 
 
 PSU_DIMENSIONS = [114, 50];
@@ -72,21 +73,37 @@ module xt60_plate_mount(half=false){
 
 
 // the holes for the IEC socket & switch
-module switch_socket(){
+module switch_socket_cutouts(){
   linear_extrude(2)
   polygon(points=[[10, 0], [38, 0], [48, 29.5], [38, 59], [10, 59], [0, 29.5]]);
 
-  translate([4, 29.5, 0])
-  rotate([180, 0, 0])
-  hole_through("M3", l=10);
+  translate([4, 29.5, 0]){
+    rotate([180, 0, 0])
+    hole_through("M3", l=10);
+  }
 
-  translate([44, 29.5, 0])
-  rotate([180, 0, 0])
-  hole_through("M3", l=10);
+  translate([44, 29.5, 0]){
+    rotate([180, 0, 0])
+    hole_through("M3", l=10);
+  }
 
   translate([0, 0, -2])
   linear_extrude(20)
   polygon(points=[[10, 5.75], [37.75, 5.75], [37.75, 46.75], [31.75, 53.25], [16, 53.25], [10, 46.75]]);
+}
+
+module switch_socket_mounts(){
+
+  translate([0, 29.5, 5.5]){
+    translate([4, 0, 0]){
+      mount_column(2.8, 5.8, 5.5, false);
+    }
+
+    translate([44, 0, 0]){
+      mount_column(2.8, 5.8, 5.5, false);
+    }
+
+  }
 }
 
 // places cylinders at the spots of the screw holes of the PSU itself,
@@ -116,7 +133,7 @@ module psu(){
 
     // PSU flaps
     translate([0, 0, -PSU_RAIL_DIMENSIONS[2]]) {
-      cube([ WALL_THICKNESS+epsilon,
+      cube([ WALL_THICKNESS-1.5+epsilon,
           PSU_DIMENSIONS[1]+epsilon,
           PSU_RAIL_DIMENSIONS[2]+epsilon
         ], false);
@@ -214,31 +231,16 @@ module fuseholders_cover(num_fuses=3){
       outer_length = 20 + 2*WALL_THICKNESS;
       outer_height = z_comp + fuseholders_height(num_fuses)+2*WALL_THICKNESS;
 
-      diagonal = 6*sqrt(2);
-      union(){
-        cube([outer_length, 6, outer_height]);
-
+      difference(){
         // add some fancy slanted edges
-        translate([-1.5, 4, outer_height/2])
-        rotate([0, 0, 180])
-        basic_triangle(6, 5, outer_height, true);
-
-        translate([outer_length + 1.5, 4, outer_height/2])
-        rotate([0, 0, -90])
-        basic_triangle(5, 6, outer_height, true);
-
-        translate([outer_length/2, 4, outer_height + 1.5])
-        rotate([0, 0, -90])
+        translate([-5, 6, -5])
         rotate([90, 0, 0])
-        basic_triangle(5, 6, outer_length, true);
+        pyramid(outer_length + 2*5, outer_height+ 2*5, 
+                23, //just guessing
+                clip_height=6);
 
-        translate([outer_length, 6, outer_height])
-        rotate([90, 0, 0])
-        cylinder(6,5,00,$fn=4);
-
-        translate([0, 6, outer_height])
-        rotate([90, 0, 0])
-        cylinder(6,5,00,$fn=4);
+        translate([-5, epsilon, -5])
+          cube([outer_length + 2*5, 6, 5]);
       }
       
       translate([WALL_THICKNESS, -epsilon, WALL_THICKNESS])
@@ -252,13 +254,107 @@ module fuseholders_cover(num_fuses=3){
 // on/off led
 module psu_regulator_led_cutouts(){
   //TODO
+
+  // led: 3mm dia
+  // reg: 5.5mm dia
+  translate([-4.5, 0, 0])
+  rotate([90, 0, 0]){
+    cylinder(WALL_THICKNESS+epsilon*2, 3/2, 3/2);
+  }
+
+  translate([4.5, 0, 0])
+  rotate([90, 0, 0]){
+    cylinder(WALL_THICKNESS+epsilon*2, 5.5/2, 5.5/2);
+  }
+
 }
 
 
 // provide space for the 24V->12V voltage regulator
 module voltage_regulator_cutouts(){
-  //TODO
 
+  z_offset = 5.5;
+
+  translate([DIMENSIONS[0]-LM2596LED_PCB_DIMENSIONS[0] -(5-WALL_THICKNESS),
+            -WALL_THICKNESS-2*epsilon,
+            z_offset])
+  cube([LM2596LED_PCB_DIMENSIONS[0], WALL_THICKNESS+4*epsilon, LM2596LED_PCB_DIMENSIONS[1]]);
+}
+
+
+module voltage_regulator_panel(){
+  
+  z_offset = 5.5;
+  pyr_len = LM2596LED_PCB_DIMENSIONS[0] + 2*5;
+
+  color("red")
+  translate([DIMENSIONS[0]-LM2596LED_PCB_DIMENSIONS[0] -2,
+            -6,
+            LM2596LED_PCB_DIMENSIONS[1] + z_offset ])
+  rotate([-90, 0, 0])
+  lm2596led_panel(3, [0, 0]);
+
+  difference(){
+
+    translate([DIMENSIONS[0]-pyr_len+WALL_THICKNESS,
+              -WALL_THICKNESS-epsilon, -WALL_THICKNESS-5])
+    rotate([90, 0, 0])
+    pyramid(pyr_len, LM2596LED_PCB_DIMENSIONS[1] + 8 + 2*5, 
+            40, //just guessing
+            clip_height=6);
+
+    translate([DIMENSIONS[0]- LM2596LED_PCB_DIMENSIONS[0] - 5 + WALL_THICKNESS,
+              -WALL_THICKNESS - 6-epsilon,
+              ])
+    cube([LM2596LED_PCB_DIMENSIONS[0], 
+          6+epsilon,
+          LM2596LED_PCB_DIMENSIONS[1] + z_offset], false);
+
+    // cut away underside of pyramid
+    translate([DIMENSIONS[0]- LM2596LED_PCB_DIMENSIONS[0] -2*5 + WALL_THICKNESS,
+              -WALL_THICKNESS - 6-epsilon,
+              -WALL_THICKNESS - 5])
+    cube([LM2596LED_PCB_DIMENSIONS[0] + 2*5, 
+          6+epsilon,
+          5], false);
+  }
+
+
+  // fill up gaps next to display thingie
+  translate([DIMENSIONS[0]- LM2596LED_PCB_DIMENSIONS[0] - 5 + WALL_THICKNESS,
+            -WALL_THICKNESS - 6,
+            0])
+    cube([10, 6, z_offset], false);
+  
+  translate([DIMENSIONS[0] - 5 -10 + WALL_THICKNESS,
+            -WALL_THICKNESS - 6,
+            0])
+    cube([10, 6, z_offset], false);
+
+  // attach mount columns to frame
+  translate([DIMENSIONS[0]- LM2596LED_PCB_DIMENSIONS[0] -2,
+            0, LM2596LED_PCB_DIMENSIONS[1] + z_offset])
+  rotate([0, 90, 0])
+  rotate([90, 0, 0])
+  basic_triangle(5, 5, WALL_THICKNESS+6);
+
+  translate([DIMENSIONS[0] - 2,
+            0, LM2596LED_PCB_DIMENSIONS[1] + z_offset])
+  rotate([0, 180, 0])
+  rotate([90, 0, 0])
+  basic_triangle(5, 5, WALL_THICKNESS+6);
+
+  translate([DIMENSIONS[0]- LM2596LED_PCB_DIMENSIONS[0] -2,
+            0, z_offset])
+  rotate([0, 0, 0])
+  rotate([90, 0, 0])
+  basic_triangle(5, 5, WALL_THICKNESS+6);
+
+  translate([DIMENSIONS[0] - 2,
+            0, z_offset])
+  rotate([0, -90, 0])
+  rotate([90, 0, 0])
+  basic_triangle(5, 5, WALL_THICKNESS+6);
 }
 
 // provide space for the 12v barrel connector
@@ -266,7 +362,6 @@ module barrel_cutout(){
   // requires only a single hole of 11mm dia.
   cylinder(WALL_THICKNESS+epsilon*2, 11/2, 11/2);
 }
-
 
 
 
@@ -289,10 +384,11 @@ module main(){
     }
 
     // cut out the holes for the main switch
+
+    color("red")
     translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]-0.5, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
     rotate([180, 180, 90])
-    color("red")
-    switch_socket();
+    switch_socket_cutouts();
   
 
     // cut out holes the fuseholder
@@ -303,6 +399,8 @@ module main(){
       fuseholders_cutouts();
     }
 
+    voltage_regulator_cutouts();
+
     // open holes for xt60 connectors
     translate(xt60_position)
       xt60_mounts_cutout();
@@ -310,6 +408,9 @@ module main(){
     // open hole for 12v barrel connector
     translate(barrel_position)
       barrel_cutout();
+
+    translate([14.5+WALL_THICKNESS, epsilon, DIMENSIONS[2]-20-PSU_RAIL_DIMENSIONS[2]/2])
+    psu_regulator_led_cutouts();
   }
 
   // brackets for xt60 connectors
@@ -322,10 +423,44 @@ module main(){
 
   translate(fuseholder_position){
     fuseholders_cover(3);
+
+    rotate([0, 0, 180])
+    fuseholder_start();
+
   }
+
+  color("red")
+  translate([DIMENSIONS[0] - SWITCH_SOCKET_PLATE_HULL[1], SWITCH_SOCKET_PLATE_HULL[0]-0.5, -WALL_THICKNESS-SWITCH_SOCKET_PLATE_HULL[2]])
+  rotate([180, 180, 90])
+  switch_socket_mounts();
+
+  voltage_regulator_panel();
+
+}
+
+module fuseholders(){
+
+  fuseholder_mid();
+
+  translate([40, 0, 0]){
+    fuseholder_mid();
+  }
+
+  translate([0,30,0]){
+    fuseholder_start();
+  }
+
+  translate([0,-30,2])
+  rotate([0,0,180])
+  rotate([180,0,0])
+  fuseholder_end();
 
 
 }
 
 
 main();
+
+//fuseholders();
+
+

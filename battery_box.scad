@@ -15,9 +15,9 @@
 // Customizer parameters
 part                            = "all";        // [holder:Holder, cover:Cover, lid: Lid, all:All Parts]
 cells                           = 2;            // [1:50]
-mounting_lugs                   = "sides";       // [topbottom, sides, none]
-mounting_lug_screw_diameter     = 6.25;            // [1:0.1:9]
-mounting_lug_thickness          = 6;            // [0.5:0.1:10]
+mount_lugs                   = "sides";       // [topbottom, sides, none]
+mount_lug_screw_diameter     = 6.25;            // [1:0.1:9]
+mount_lug_thickness          = 6;            // [0.5:0.1:10]
 center_channel_width            = 3.0;          // [0.2:0.1:7.0]
 other_channel_width             = 2.5;          // [0.2:0.1:5.0]
 cover_retainer_clearance        = 0.1;          // [0.0:0.05:0.3]
@@ -148,9 +148,9 @@ module all()
 {
   rotate([0, 0, 90])
   {
-    lugs_translate_y = (mounting_lugs == "topbottom") ? 
-                            (-((mounting_lug_screw_diameter) * 2 + 
-                                (mounting_lug_screw_diameter) * 2))
+    lugs_translate_y = (mount_lugs == "topbottom") ? 
+                            (-((mount_lug_screw_diameter) * 2 + 
+                                (mount_lug_screw_diameter) * 2))
                                                       : 0;
     
     translate([0, SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2 -(lugs_translate_y - HOLDER_COVER_SPACING)/ 2, 0])
@@ -179,7 +179,7 @@ module holder()
 
       union(){
         // The cells compartiment
-        multipleCells(cells, mounting_lugs);
+        multipleCells(cells, mount_lugs);
 
         // the switch compartiment
         translate([MULTI_CELL_HOLDER_DIMENSIONS[0]/2, MULTI_CELL_HOLDER_DIMENSIONS[1]/2, 0])
@@ -439,26 +439,26 @@ module undersideTabsAndChanneling()
 
 
 
-module multipleCells(cellCount, mounting_lugs)
+module multipleCells(cellCount, mount_lugs)
 {
-  if (mounting_lugs == "sides")
+  if (mount_lugs == "sides")
   {
     translate([-(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, -COVER_THICKNESS])
     {
       translate([0, BOX_DIMENSIONS[1] / 2 - LID_BOLT_SPACE_WIDTH, 0])
-        mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
-      translate([0, -((BOX_DIMENSIONS[1] - LID_BOLT_SPACE_WIDTH) / 2 -(MOUNT_LUG_INSET + mounting_lug_screw_diameter)), 0])
-        mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
+        mount_lug(inner_radius=mount_lug_screw_diameter/2.0, height=mount_lug_thickness);
+      translate([0, -((BOX_DIMENSIONS[1] - LID_BOLT_SPACE_WIDTH) / 2 -(MOUNT_LUG_INSET + mount_lug_screw_diameter)), 0])
+        mount_lug(inner_radius=mount_lug_screw_diameter/2.0, height=mount_lug_thickness);
     }
 
     translate([(MULTI_CELL_HOLDER_DIMENSIONS[0] + box_padding) / 2, 0, -COVER_THICKNESS])
     {
       translate([0, BOX_DIMENSIONS[1] / 2 - LID_BOLT_SPACE_WIDTH, 0])
         rotate([0, 0, 180])
-          mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
-      translate([0, -((BOX_DIMENSIONS[1] - LID_BOLT_SPACE_WIDTH) / 2 - (MOUNT_LUG_INSET + mounting_lug_screw_diameter)), 0])
+          mount_lug(inner_radius=mount_lug_screw_diameter/2.0, height=mount_lug_thickness);
+      translate([0, -((BOX_DIMENSIONS[1] - LID_BOLT_SPACE_WIDTH) / 2 - (MOUNT_LUG_INSET + mount_lug_screw_diameter)), 0])
         rotate([0, 0, 180])
-          mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
+          mount_lug(inner_radius=mount_lug_screw_diameter/2.0, height=mount_lug_thickness);
     }
   }
     
@@ -470,14 +470,14 @@ module multipleCells(cellCount, mounting_lugs)
         singleCell(c);
       }
       
-      if (mounting_lugs == "topbottom" && (c == 0 || c == (cellCount - 1)))
+      if (mount_lugs == "topbottom" && (c == 0 || c == (cellCount - 1)))
       {
         translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], -SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2, 0])
           rotate([0, 0, 90])
-            mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
+            mount_lug(inner_radius=mount_lug_screw_diameter/2.0, height=mount_lug_thickness);
         translate([SINGLE_CELL_HOLDER_DIMENSIONS[0] / 2 + c * SINGLE_CELL_HOLDER_DIMENSIONS[0], SINGLE_CELL_HOLDER_DIMENSIONS[1] / 2, 0])
           rotate([0, 0, -90])
-            mounting_lug(inner_radius=mounting_lug_screw_diameter/2.0, height=mounting_lug_thickness);
+            mount_lug(inner_radius=mount_lug_screw_diameter/2.0, height=mount_lug_thickness);
       }
     }
   }

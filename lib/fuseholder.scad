@@ -52,7 +52,7 @@ module fuseholder_base(height=2, mount_radius=1.5)
   for (m = [1,-1]) {
     translate([m * Hole_X_Offset, Hole_Y_Offset, 0]) {
       rotate([0, 0, 90 + m*90])
-      mounting_lug(mount_radius, height);
+      mount_lug(mount_radius, height);
     }
   }
 }
@@ -83,13 +83,13 @@ module fuseholder_bottom_space()
 }
 
 
-module fuseholder_start(thin=false)
+module fuseholder_start(thin=false, mount_radius=1.5)
 {
   difference()
   {
     height = thin ? 4.35 : 6.35;
     z_offset = thin ? -2 : 0;
-    fuseholder_base(height=height);
+    fuseholder_base(height=height, mount_radius=mount_radius);
     translate([0, 0, z_offset])
     for (m = [0,1])
     {
@@ -117,11 +117,11 @@ module fuseholder_start(thin=false)
 
 }
 
-module fuseholder_mid()
+module fuseholder_mid(mount_radius=1.5)
 {
   difference()
   {
-    fuseholder_base(6.35);
+    fuseholder_base(6.35, mount_radius=mount_radius);
     fuseholder_bottom_space();
     for (m = [0,1])
     {
@@ -145,10 +145,10 @@ module fuseholder_mid()
     }
   }
 }
-module fuseholder_end(wide=false)
+module fuseholder_end(wide=false, mount_radius=1.5)
 {
   difference() {
-    fuseholder_base(2.0);
+    fuseholder_base(2.0, mount_radius=mount_radius);
     for (m = [0,1]) {
       mirror([m,0,0])
       {
@@ -187,24 +187,24 @@ function fuseholders_height(num_fuses=2, thin=false) =
   start_height + (num_fuses-1)*mid_height + end_height;
 
 
-module fuseholders_stacked(num_fuses=2, thin=false){
+module fuseholders_stacked(num_fuses=2, thin=false, mount_radius=1.5){
   
   $fn=48;
 
   mid_height = 6.35;
   start_height = thin ? mid_height-2 : mid_height;
 
-  fuseholder_start(thin);
+  fuseholder_start(thin, mount_radius=mount_radius);
 
   translate([0, 0, start_height]){
     for (f = [0:num_fuses-2]){
       translate([0, 0, mid_height*f])
-        fuseholder_mid();
+        fuseholder_mid(mount_radius=mount_radius);
     }
   }
 
   translate([0, 0, (num_fuses-1)*mid_height + start_height]){
-    fuseholder_end();
+    fuseholder_end(mount_radius=mount_radius);
   }
 
 }
