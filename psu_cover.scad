@@ -21,9 +21,9 @@ $fn=80;
 
 
 WALL_THICKNESS = 3.0;
-DIMENSIONS = [114, 50-WALL_THICKNESS, 65];
+DIMENSIONS = [114, 50-WALL_THICKNESS, 70];
 
-
+PSU_OFFSET = 20;
 PSU_DIMENSIONS = [114, 50];
 PSU_RAIL_DIMENSIONS = [PSU_DIMENSIONS[0], 23, 17];
 
@@ -110,10 +110,10 @@ module switch_socket_mounts(){
 // so they can be cut out
 module psu_mount_holes(){
   for (h = PSU_MOUNT_HOLES){
-    translate([-epsilon*2, 0, 0])
+    translate([-WALL_THICKNESS/2, 0, 0])
     translate(h)
       rotate([0, -90, 0]){
-      hole_through("M3", l=WALL_THICKNESS + epsilon*4);
+      hole_through("M3", l=WALL_THICKNESS*2);
     };
   };
 }
@@ -122,7 +122,7 @@ module psu_mount_holes(){
 
 //draw a bit of the PSU so we now where to keep space
 module psu(){
-  translate([0, WALL_THICKNESS, -20]) {
+  translate([0, WALL_THICKNESS, -PSU_OFFSET]) {
 
     // main block
     cube([ PSU_DIMENSIONS[0],
@@ -131,9 +131,9 @@ module psu(){
       ], false);
 
 
-    // PSU flaps
+    // PSU flap
     translate([0, 0, -PSU_RAIL_DIMENSIONS[2]]) {
-      cube([ WALL_THICKNESS-1.5+epsilon,
+      cube([ WALL_THICKNESS+epsilon,
           PSU_DIMENSIONS[1]+epsilon,
           PSU_RAIL_DIMENSIONS[2]+epsilon
         ], false);
@@ -254,14 +254,14 @@ module psu_regulator_led_cutouts(){
 
   // led: 3mm dia
   // reg: 5.5mm dia
-  translate([-4.5, 0, 0])
+  translate([-4.5, WALL_THICKNESS/2, 0])
   rotate([90, 0, 0]){
-    cylinder(WALL_THICKNESS+epsilon*2, 3/2, 3/2);
+    cylinder(WALL_THICKNESS*2, 3/2, 3/2);
   }
 
-  translate([4.5, 0, 0])
+  translate([4.5, WALL_THICKNESS/2, 0])
   rotate([90, 0, 0]){
-    cylinder(WALL_THICKNESS+epsilon*2, 5.5/2, 5.5/2);
+    cylinder(WALL_THICKNESS*2, 5.5/2, 5.5/2);
   }
 }
 
@@ -372,19 +372,45 @@ module voltage_regulator_panel(){
 // provide space for the 12v barrel connector
 module barrel_cutout(){
   // requires only a single hole of 11mm dia.
-  cylinder(WALL_THICKNESS+epsilon*2, 11/2, 11/2);
+  cylinder(WALL_THICKNESS*2, 11/2, 11/2);
 }
 
 
+module psu_mounts(){
+  difference(){
+    union(){
+      translate([DIMENSIONS[0]-1.5-2, 15, 0])
+      cube([2, DIMENSIONS[1]-22.5, DIMENSIONS[2]-PSU_OFFSET]);
+
+      translate([DIMENSIONS[0]-1.5, 15, 0])
+      cube([2, DIMENSIONS[1]-22.5, DIMENSIONS[2]-PSU_OFFSET-PSU_RAIL_DIMENSIONS[2]]);
+
+      translate([1.5, 0, 0])
+      cube([2, DIMENSIONS[1]-10.5, DIMENSIONS[2]-PSU_OFFSET]);
+    }
+
+    translate([1, DIMENSIONS[1]/2, DIMENSIONS[2]-PSU_OFFSET-6.5])
+    rotate([0, 0, -90])
+    rotate([-90, 0, 0])
+    cylinder(4, 2.8/2, 2.8/2);
+  }
+
+  translate([3, DIMENSIONS[1]/2, DIMENSIONS[2]-PSU_OFFSET-6.5])
+  rotate([0, 0, -90])
+  rotate([-90, 0, 0])
+  mount_column(2.8, 5.8, 6, false);
+
+
+}
 
 module main(){
 
-  xt60_position = [WALL_THICKNESS, DIMENSIONS[1]-19-WALL_THICKNESS, -WALL_THICKNESS-epsilon];
-  barrel_position = [WALL_THICKNESS + 26+11+1, DIMENSIONS[1]-11/3*2-WALL_THICKNESS, -WALL_THICKNESS-epsilon];
+  xt60_position = [WALL_THICKNESS + 23 , DIMENSIONS[1]-19-WALL_THICKNESS, -WALL_THICKNESS-epsilon];
+  barrel_position = [WALL_THICKNESS + 10, DIMENSIONS[1]-11/3*2-WALL_THICKNESS, -WALL_THICKNESS*1.5];
   psu_position = [0, DIMENSIONS[1] - PSU_DIMENSIONS[1], DIMENSIONS[2]];
   fuseholder_position = [15+WALL_THICKNESS, 26-WALL_THICKNESS, 0];
 
-  psu_regulator_led_position = [14.5+WALL_THICKNESS, epsilon, DIMENSIONS[2]-20-PSU_RAIL_DIMENSIONS[2]/2];
+  psu_regulator_led_position = [14.5+WALL_THICKNESS, epsilon, DIMENSIONS[2]-PSU_OFFSET-PSU_RAIL_DIMENSIONS[2]/2];
 
 
   difference(){
@@ -454,6 +480,8 @@ module main(){
 
   translate(psu_regulator_led_position)
   psu_regulator_led_mounts();
+
+  psu_mounts();
 
 }
 
