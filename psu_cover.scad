@@ -172,8 +172,6 @@ module enclosure() {
       DIMENSIONS[2] + epsilon,
     ], false);
   }
-
-  // TODO: perhaps add a slanted edge in case the PSU is smaller than the cover
 }
 
 module xt60_mounts(num_connectors=2){
@@ -253,7 +251,6 @@ module fuseholders_cover(num_fuses=3){
 // we like to bring out the PSU voltage regulator potmeter and
 // on/off led
 module psu_regulator_led_cutouts(){
-  //TODO
 
   // led: 3mm dia
   // reg: 5.5mm dia
@@ -266,8 +263,23 @@ module psu_regulator_led_cutouts(){
   rotate([90, 0, 0]){
     cylinder(WALL_THICKNESS+epsilon*2, 5.5/2, 5.5/2);
   }
-
 }
+
+module psu_regulator_led_mounts(){
+
+  // led: 3mm dia
+  // reg: 5.5mm dia
+  translate([-9, 0, 0])
+  rotate([-90, 0, 0]){
+    mount_column(height=6, bottom=false);
+  }
+
+  translate([11, 0, 0])
+  rotate([-90, 0, 0]){
+    mount_column(height=6, bottom=false);
+  }
+}
+
 
 
 // provide space for the 24V->12V voltage regulator
@@ -372,6 +384,9 @@ module main(){
   psu_position = [0, DIMENSIONS[1] - PSU_DIMENSIONS[1], DIMENSIONS[2]];
   fuseholder_position = [15+WALL_THICKNESS, 26-WALL_THICKNESS, 0];
 
+  psu_regulator_led_position = [14.5+WALL_THICKNESS, epsilon, DIMENSIONS[2]-20-PSU_RAIL_DIMENSIONS[2]/2];
+
+
   difference(){
 
     // the main enclosure
@@ -409,7 +424,7 @@ module main(){
     translate(barrel_position)
       barrel_cutout();
 
-    translate([14.5+WALL_THICKNESS, epsilon, DIMENSIONS[2]-20-PSU_RAIL_DIMENSIONS[2]/2])
+    translate(psu_regulator_led_position)
     psu_regulator_led_cutouts();
   }
 
@@ -435,6 +450,9 @@ module main(){
   switch_socket_mounts();
 
   voltage_regulator_panel();
+
+  translate(psu_regulator_led_position)
+  psu_regulator_led_mounts();
 
 }
 
